@@ -1005,6 +1005,7 @@ body.is-chat-room .site-foot{padding-bottom:env(safe-area-inset-bottom,0px)}
 /* bring my card */
 .bring-who{display:flex;align-items:center;gap:14px;margin-bottom:8px}
 .bring-who h2{margin:0}
+.bring-file{margin:4px 0 14px} .bring-file .form__acts{margin:6px 0 0} .empty .bring-file .form__acts{justify-content:center}
 .bring-strip{border-left-color:var(--accent)}
 /* people chips */
 .who{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;min-height:44px}

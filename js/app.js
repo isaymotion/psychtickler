@@ -4535,7 +4535,7 @@
     var view0 = VIEWS.me;
     VIEWS.me = function () {
       var html = view0.apply(null, arguments);
-      if (!getMe() && btCard()) html = html.replace('<form id="me-form"', '<a class="card sync-strip bring-strip" href="#/bring">' + icon('card', 'sync-strip__ico') + '<span class="em-strip__t"><strong>' + esc(t('pt.bring.stripH')) + '</strong><span>' + esc(t('pt.bring.strip')) + '</span></span></a><form id="me-form"');
+      if (!getMe()) html = html.replace('<form id="me-form"', bringStrip() + '<form id="me-form"');
       return html;
     };
   })();
@@ -4543,7 +4543,22 @@
   /* ---- Bring my card from Batch Tickler (#/bring). Both apps live on isaymotion.github.io, so this app can read the card
           Batch Tickler saved on this phone (key bt:v1:me). Nothing is read from the cloud and nothing changes in Batch Tickler. ---- */
   var BT_KEY = 'bt:v1:me';
-  function btCard() { try { var raw = JSON.parse(window.localStorage.getItem(BT_KEY)); return raw && typeof raw === 'object' && cleanText(raw.name, 80) ? raw : null; } catch (e) { return null; } }
+  function btCheck(raw) { return raw && typeof raw === 'object' && !Array.isArray(raw) && cleanText(raw.name, 80) ? raw : null; }
+  function btCard() { try { return btCheck(JSON.parse(window.localStorage.getItem(BT_KEY))); } catch (e) { return null; } }
+  /* 1.1.2: installed Home Screen apps (iPhone, iPad, Safari "Add to Dock") each keep their own storage, so the card can
+     also come from a Batch Tickler backup file (Batch Tickler ☰ › Backup › Export). Only data.me is read; it is held
+     in memory until "Bring my card" is tapped. No other key is imported and nothing under bt:v1: is ever written. */
+  var BRING_FILE_MAX = 15 * 1024 * 1024, bringFile = null;   // {card, name}
+  function bringSrc() { if (bringFile) return { card: bringFile.card, file: bringFile.name }; var b = btCard(); return b ? { card: b, file: '' } : null; }
+  function bringStrip() {
+    var found = !!btCard();
+    return '<a class="card sync-strip bring-strip" href="#/bring">' + icon('card', 'sync-strip__ico') + '<span class="em-strip__t"><strong>' + esc(t('pt.bring.stripH')) + '</strong><span>' + esc(t(found ? 'pt.bring.strip' : 'pt.bring.stripFile')) + '</span></span></a>';
+  }
+  function bringPicker(again) {
+    return '<div class="bring-file"><p class="field__h">' + esc(t(again ? 'pt.bring.fileAgain' : 'pt.bring.fileH')) + '</p>' +
+      '<p class="form__acts"><input type="file" id="bring-file" class="sr-only" accept=".json,application/json"><label class="btn' + (again ? '' : ' btn--solid') + '" for="bring-file">' + esc(t('pt.bring.fileBtn')) + '</label></p>' +
+      '<p class="form__status" id="bring-file-status" role="status" aria-live="polite"></p></div>';
+  }
   var BRING_ON = ['basics', 'background', 'favourites', 'life'], BRING_OFF = ['contact', 'emergency'];
   var BRING_EXTRA = [['photo', 'pt.bring.x.photo', function (b) { return !!b.photo; }], ['birthday', 'pt.bring.x.birthday', function (b) { return !!b.bmonth; }],
     ['lists', 'pt.bring.x.lists', function (b) { return (b.playlists || []).length || (b.netflix || []).length || Object.keys(b.lists || {}).length; }],
@@ -4552,12 +4567,12 @@
   function realGroup(g) { return FIELDS.filter(function (f) { return f.group === g; }); }
   NAV.push({ label: 'Bring my card from Batch Tickler', tkey: 'nav.bring', href: '#/bring', icon: 'card', group: 'App', tile: false });
   VIEWS.bring = function () {
-    var b = btCard(), me = getMe(), html = pageHead('bring', 'nav.bring', 'pt.bring.intro');
-    if (!b) return html + '<div class="empty"><h2>' + esc(t('pt.bring.noneH')) + '</h2><p>' + esc(t('pt.bring.none')) + '</p><p><a class="btn btn--solid" href="#/me">' + esc(t('nav.me')) + '</a></p></div></div>';
+    var src = bringSrc(), b = src && src.card, me = getMe(), html = pageHead('bring', 'nav.bring', 'pt.bring.intro');
+    if (!b) return html + '<div class="empty"><h2>' + esc(t('pt.bring.noneH')) + '</h2><p>' + esc(t('pt.bring.none')) + '</p>' + bringPicker(false) + '<p><a class="btn" href="#/me">' + esc(t('pt.bring.fresh')) + '</a></p></div></div>';
     var sb = sanitizeCard(Object.assign({}, b, { id: b.id || 'x' })) || {};
     function row(name, label, n, on, note) { return '<label class="sync__tick"><input type="checkbox" name="' + name + '"' + (on ? ' checked' : '') + (n ? '' : ' disabled') + '> <span><strong>' + esc(label) + '</strong><span class="field__h">' + esc(n ? note : t('pt.bring.empty')) + '</span></span></label>'; }
     function count(g) { return realGroup(g).filter(function (f) { return sb[f.key]; }).length; }
-    return html + '<form class="card form" id="bring-form"><div class="bring-who">' + avatar(sb, 'avatar--lg') + '<div><h2>' + esc(sb.name || '') + '</h2><p class="muted">' + esc(t('pt.bring.found')) + '</p></div></div>' +
+    return html + '<form class="card form" id="bring-form"><div class="bring-who">' + avatar(sb, 'avatar--lg') + '<div><h2>' + esc(sb.name || '') + '</h2><p class="muted">' + esc(src.file ? tf('pt.bring.foundFile', { name: src.file }) : t('pt.bring.found')) + '</p></div></div>' + bringPicker(true) +
       '<h3>' + esc(t('pt.bring.takeH')) + '</h3>' +
       BRING_ON.map(function (g) { var n = count(g); return row('g_' + g, groupLabel(g), n, true, tf('pt.bring.nFields', { n: n })); }).join('') +
       BRING_EXTRA.map(function (x) { var n = x[2](sb) ? 1 : 0; return row('x_' + x[0], t(x[1]), n, true, t(x[1] + '.h')); }).join('') +
@@ -4571,10 +4586,33 @@
       '<p class="field__h">' + esc(t('pt.bring.foot')) + '</p></form></div>';
   };
   AFTER.bring = function () {
+    var fi = document.getElementById('bring-file');
+    if (fi) fi.addEventListener('change', function () {
+      var file = fi.files && fi.files[0], st = document.getElementById('bring-file-status');
+      function fail(k) { st.textContent = t(k); st.classList.add('is-error'); fi.value = ''; }
+      if (!file) return;
+      st.classList.remove('is-error'); st.textContent = '';
+      if (file.size > BRING_FILE_MAX) return fail('pt.bring.fileBig');
+      var reader = new FileReader();
+      reader.onerror = function () { fail('pt.bring.fileBad'); };
+      reader.onload = function () {
+        var p, card = null;
+        try { p = JSON.parse(reader.result); } catch (e) { return fail('pt.bring.fileBad'); }
+        if (p && p.app === BK_APP) return fail('pt.bring.filePT');
+        if (!p || p.app !== 'batchtickler' || !p.data || typeof p.data !== 'object') return fail('pt.bring.fileBad');
+        if (typeof p.data.me !== 'string') return fail('pt.bring.fileNoCard');
+        try { card = btCheck(JSON.parse(p.data.me)); } catch (e) { card = null; }
+        if (!card) return fail('pt.bring.fileNoCard');
+        bringFile = { card: card, name: String(file.name || '').slice(0, 80) };
+        route({ keepScroll: true });
+        toast(t('pt.bring.fileOk'));
+      };
+      reader.readAsText(file);
+    });
     var form = document.getElementById('bring-form'); if (!form) return;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var b = btCard(), old = getMe(), E = form.elements; if (!b) return;
+      var s0 = bringSrc(), b = s0 && s0.card, old = getMe(), E = form.elements; if (!b) return;
       var src = sanitizeCard(Object.assign({}, b, { id: b.id || 'x' })); if (!src) return;
       var replace = !old || (E.mode && E.mode.value === 'replace');
       var c = old ? JSON.parse(JSON.stringify(old)) : { id: newId(), name: src.name, pos: 'resident', startYear: defaultStartYear(), custom: [], playlists: [], netflix: [], lists: {} };
@@ -4591,18 +4629,18 @@
       c.updated = new Date().toISOString();
       var clean = sanitizeCard(c), st = document.getElementById('bring-status');
       if (!clean) { st.textContent = t('bt.me.needName'); st.classList.add('is-error'); return; }
-      store.set('me', clean); store.del('meDraft'); store.set('broughtBT', clean.updated); rebuildIndex();
+      store.set('me', clean); store.del('meDraft'); store.set('broughtBT', clean.updated); bringFile = null; rebuildIndex();
       toast(t('pt.bring.done'));
       location.hash = '#/me';
     });
   };
   TITLES.bring = function () { return t('nav.bring'); };
-  (function () {   // Home: offer the move once, to people who have a Batch Tickler card on this phone and no card here yet
+  (function () {   // Home: offer the move to anyone with no card here yet (found on this phone, or from a backup file)
     var home0 = VIEWS.home;
     VIEWS.home = function () {
       var html = home0.apply(null, arguments);
-      if (getMe() || !btCard()) return html;
-      var strip = '<a class="card sync-strip bring-strip" href="#/bring">' + icon('card', 'sync-strip__ico') + '<span class="em-strip__t"><strong>' + esc(t('pt.bring.stripH')) + '</strong><span>' + esc(t('pt.bring.strip')) + '</span></span></a>';
+      if (getMe()) return html;
+      var strip = bringStrip();
       return html.indexOf('<div class="home__stats">') >= 0 ? html.replace('<div class="home__stats">', strip + '<div class="home__stats">') : html.replace(/(<\/header>)/, '$1' + strip);
     };
   })();

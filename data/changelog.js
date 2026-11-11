@@ -4,6 +4,13 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.1.2', date: '2026-11-11', title: 'Bring your card from a Batch Tickler backup file',
+    items: [
+      { type: 'feature', text: 'Bring my card now works with installed apps: in Batch Tickler tap ☰ › Backup › Export, then in Psych Tickler open Bring my card and choose that file. Only your card is read from it; contact and emergency details stay unticked unless you tick them.', href: '#/bring' },
+      { type: 'update', text: 'Until you have a card here, Home and My card show a link to Bring my card, even when no Batch Tickler card is found on this device.' }
+    ]
+  },
+  {
     version: '1.1.1', date: '2026-11-11', title: 'Tidier Home picture',
     items: [
       { type: 'update', text: 'Home: the title is no longer written twice over the picture, and the space around the picture is purple to match the rest of the app.' }
