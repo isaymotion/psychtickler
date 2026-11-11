@@ -830,7 +830,7 @@
     var me = getMe(), all = people(), today = new Date(), latest = CHANGELOG[0];
     var tiles = NAV.filter(function (n) { return n.tile !== false && n.href !== '#/'; });
     var next = all.filter(function (c) { return c.bmonth; }).map(function (c) { return { c: c, d: daysUntil(c, today) }; }).sort(function (a, b) { return a.d - b.d; })[0];
-    return '<section class="hero hero--banner">' + (bannerSrc() ? '<img class="hero__img hero__img--custom" src="' + esc(bannerSrc()) + '" alt="">' : '<img class="hero__img" src="img/banner.jpg" srcset="img/banner-small.jpg 704w, img/banner.jpg 1408w" sizes="100vw" alt="" width="1408" height="768">') +
+    return '<section class="hero hero--banner">' + (bannerSrc() ? '<img class="hero__img hero__img--custom" src="' + esc(bannerSrc()) + '" alt="">' : '<img class="hero__img" src="img/banner.jpg" srcset="img/banner-small.jpg 480w, img/banner.jpg 774w" sizes="(max-width:720px) 66vw, 440px" alt="" width="774" height="774">') +
       '<div class="wrap hero__inner">' + (batchName() ? '<p class="hero__kicker">' + esc(batchName()) + '</p>' : '') + '<h1>' + esc(APP_NAME) + '</h1>' +
         '<p class="hero__lead">' + esc(META.tagline || '') + ' · ' + esc(HOSP.program || '') + '</p>' +
         '<p><a class="btn btn--solid" href="' + (me ? '#/batch' : '#/me') + '">' + esc(t(me ? 'bt.hero.ctaDone' : 'bt.hero.cta')) + '</a></p>' +

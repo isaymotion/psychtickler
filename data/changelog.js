@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.1.1', date: '2026-11-11', title: 'Tidier Home picture',
+    items: [
+      { type: 'update', text: 'Home: the title is no longer written twice over the picture, and the space around the picture is purple to match the rest of the app.' }
+    ]
+  },
+  {
     version: '1.1.0', date: '2026-11-11', title: 'My card is easier to find, and a cleaner look',
     items: [
       { type: 'feature', text: 'My card now has its own button in the middle of the bottom bar (it shows your photo) and a "Your card" box near the top of Home, right under the chat. In the menu, Chat and My card come first, right after Home.', href: '#/me' },
