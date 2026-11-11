@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.1.0 (commit `1aa5538` on `main`). Baseline re-checked the same day: all tests pass. Combined rules copied into `tickler` (commit `8d965bc`).
+Last updated 11 November 2026, at version 1.1.0 (commit `1aa5538` on `main`). Baseline re-checked the same day: all tests pass. Combined rules copied into `tickler` (commit `8d965bc`), published in Firebase, department space created. Next: 1.1.1 (section 7).
 
 ## 1. Project and audience
 
@@ -79,17 +79,27 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | 1.0.0 department build | Done, pushed |
 | 1.1.0 My card placement and layout (other chat) | Done, pushed; tests pass on it |
 | Tagalog for `pt.*` and reworded `bt.*` strings | Draft, awaiting her review |
-| `firestore.rules` on the real project | NOT verified. Never run on an emulator or live |
-| GitHub Pages switched on, rules pasted, department space created | Hers to do; not confirmed |
+| `firestore.rules` on the real project | Combined file PUBLISHED in Firebase 11 Nov 2026 (no errors). Behaviour not yet verified by a two-account test |
+| GitHub Pages switched on, rules pasted, department space created | Done 11 Nov 2026: rules published, space "MMWGH Psychiatry" created by the owner (join code is hers; not stored here) |
+| Bring card from Batch Tickler | BROKEN in practice when the apps are installed (see pitfalls); fix is 1.1.1 |
 | Doc Andrei and Doc Vince made admins | After they join |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
 
-1. Ask her whether Pages is on, the rules are published and the space is created; help with any rule error (`permission-denied`) from a two-account test (one resident, one consultant).
-2. (Done) Rules copied into `tickler`.
-3. Next version is 1.1.1 or 1.2.0; next cache name `psychtickler-<that version>`.
+1. **Build 1.1.1: bring card from a Batch Tickler backup file** (she approved it).
+   - Why: on iPhone/iPad (and Safari "Add to Dock" on Mac) each installed Home Screen web app has its own storage, so installed Psych Tickler cannot read `bt:v1:me` from installed Batch Tickler. She has both apps installed on laptop, iPad and iPhone, and `#/bring` shows "No Batch Tickler card on this device" everywhere.
+   - Batch Tickler backup file (Batch Tickler ☰ › Backup › Export, `batchtickler-backup-YYYY-MM-DD.json`): `{app: 'batchtickler', format: 1, exported, attribution, summary, data}`; `data` maps keys WITHOUT the `bt:v1:` prefix to stored strings, so the card is `JSON.parse(data.me)`.
+   - In `js/app.js` (bring section, about line 4543): add a file input "Choose a Batch Tickler backup file" both in the "none found" state and below the found card. Accept only `app === 'batchtickler'`; read ONLY `data.me`; check it with the same test as `btCard()` (object with a name); hold it in memory and render the same ticks form from it (refactor `VIEWS.bring`/`AFTER.bring` to take a card source). Never import any other key, never write `bt:v1:*`, never touch Psych Tickler backup/restore (`psychtickler` id stays).
+   - Clear error for a Psych Tickler backup or any other file; size limit (photos make files large; allow a few MB).
+   - Show the Home strip/link to `#/bring` even when no local card is found, at least while the user has no card yet, so installed users can find the file option. Update `pt.bring.none` text to tell them to export a backup in Batch Tickler and pick it here.
+   - Strings in `data/strings-pt.js`, English + Tagalog (Tagalog via a Sonnet subagent, drafts).
+   - Tests: extend `t1.py` (or add `t3.py` on dev-tools) to feed a sample backup file with `set_input_files`, bring it, and confirm contact/emergency stay unticked and the card saves; also a wrong-app file shows the error.
+   - Release: 1.1.1 in `data/app-meta.js`, `VERSION` in `sw.js` (`psychtickler-1.1.1`), changelog entry, README (bring section). No `firestore.rules` change. Push `main`, push tools to `dev-tools`.
+   - Afterwards give her the steps: export in Batch Tickler, then Psych Tickler ☰ › Bring my card › choose file.
+2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
+3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill).
 4. Later: DutySched publishing, then "on duty today".
 
 ## 8. Pitfalls learned
@@ -103,6 +113,8 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 - Batch Tickler requires a birth year; Psych Tickler must not.
 - Playwright: 1.1.0 added a second element with `data-posgroup`; select `details[data-posgroup=consultant]`. Click sticky top bar buttons with `page.mouse.click`.
 - A fresh clone of an empty repo has no `origin/main` ref until the first fetch names it; use `git pull origin main`.
+
+- Installed web apps on iOS/iPadOS (and Safari Add to Dock) do NOT share localStorage with each other or with the browser, even on the same origin. Anything that reads another app's local data must also offer a file route.
 
 ## 9. Files to re-attach
 
