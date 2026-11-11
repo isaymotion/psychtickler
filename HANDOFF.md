@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.2.0 (commit `3605fdf` on `main`). All tests (t1, t2, t3) and both checks pass. 1.2.0 adds the Thursday Didactics day reminder. Next: two-account test (section 7).
+Last updated 11 November 2026, at version 1.2.1 (commit `dbb8d45` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -46,6 +46,8 @@ Firestore, under `programs/{code}/`:
 
 `firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
 
+Department-wide events (1.2.1): `data/dept-events.js` sets `window.DEPT_EVENTS`; `deptEvents()` (events section of `js/app.js`) validates them and `getEvents()` adds them as `builtin` (read-only, never stored or synced). Optional fields: `end` (last day; `evLeft()` keeps a range under Upcoming until then, `evWhen()` says "Happening now", the .ics DTEND covers it), `url` (Register link, https only, also .ics `URL:`), `lists` (`[{title, names}]`, tap-to-open). The file is public on GitHub Pages; she chose to include the PPA attendee names. To add a department event: edit that file only, then bump the version.
+
 Didactics day (1.2.0) is phone-only (no cloud data), in the section just before `PSYCH TICKLER 1.0.0: FUN`; it wraps `VIEWS.home`, `VIEWS.events` and `AFTER.events`.
 
 Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar. 1.1.1 (other chat) tidied the Home banner picture.
@@ -71,11 +73,12 @@ python3 -m http.server 8765 &          # run from the main checkout
 python3 ../pt-tools/tools/t1.py         # bring card, edit, save, open every screen
 python3 ../pt-tools/tools/t2.py         # four phones on a mock cloud
 python3 ../pt-tools/tools/t3.py         # bring from a backup file (1.1.2), wrong files, nothing leaks
+python3 ../pt-tools/tools/t4.py         # built-in department events (1.2.1): range, Register, lists, .ics
 python3 <isaymotion-app-design>/scripts/check_sw.py .
 python3 <isaymotion-app-design>/scripts/check_design.py . --browser   # then delete _qa/
 ```
 
-Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. Both checks print PASS.
+Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 7 `ok` lines and `no errors` (update it when the PPA entries are removed). Both checks print PASS.
 
 ## 6. Status
 
@@ -92,6 +95,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | Doc Andrei and Doc Vince made admins | After they join |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
+| 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. 2 `pt.ev.*` Tagalog drafts to review |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
@@ -99,8 +103,9 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
 3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill). The message should include the backup-file steps for bringing a Batch Tickler card.
-4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent).
-5. Later: DutySched publishing, then "on duty today".
+4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent) and `pt.ev.register`, `pt.ev.now` from 1.2.1.
+5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
+6. Later: DutySched publishing, then "on duty today".
 
 ## 8. Pitfalls learned
 
@@ -117,6 +122,8 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 - Installed web apps on iOS/iPadOS (and Safari Add to Dock) do NOT share localStorage with each other or with the browser, even on the same origin. Anything that reads another app's local data must also offer a file route.
 
 - Parallel chats can take a version number. Before a release, `git pull` and read the top of `data/changelog.js`; use the next free version (1.1.1 was taken, so the backup-file build became 1.1.2).
+- Built-in events are always present, so the Planner badge can pop on first visit to Department events (already true with "First day of residency"); harmless.
+- Push access: if `git push` returns 403 from the git proxy, attach the repo to the session with push access first.
 - `BK_APP` is declared with `var` further down `js/app.js` than the bring section; it is only read inside handlers at run time, so that is fine.
 
 ## 9. Files to re-attach
