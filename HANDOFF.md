@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.1.0 (commit `1aa5538` on `main`). Baseline re-checked the same day: all tests pass. Combined rules copied into `tickler` (commit `8d965bc`), published in Firebase, department space created. Next: 1.1.1 (section 7).
+Last updated 11 November 2026, at version 1.1.2 (commit `95a9254` on `main`). All tests (t1, t2, t3) and both checks pass. 1.1.1 (Home banner) was made by a parallel chat; 1.1.2 adds bring-from-backup-file. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -46,7 +46,9 @@ Firestore, under `programs/{code}/`:
 
 `firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
 
-Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar.
+Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar. 1.1.1 (other chat) tidied the Home banner picture.
+
+Bring section (`js/app.js`, just before `PSYCH TICKLER 1.0.0: FUN`): `btCheck()` validates a card; `btCard()` reads `bt:v1:me`; `bringFile` holds a card read from a Batch Tickler backup file (memory only, cleared after a bring); `bringSrc()` prefers the file over the local card; `bringStrip()` is the Home/My card link (shown whenever `getMe()` is empty); `bringPicker()` is the file input; `BRING_FILE_MAX` 15 MB.
 
 ## 4. Recipe for one change
 
@@ -66,11 +68,12 @@ git fetch origin dev-tools && git worktree add ../pt-tools origin/dev-tools
 python3 -m http.server 8765 &          # run from the main checkout
 python3 ../pt-tools/tools/t1.py         # bring card, edit, save, open every screen
 python3 ../pt-tools/tools/t2.py         # four phones on a mock cloud
+python3 ../pt-tools/tools/t3.py         # bring from a backup file (1.1.2), wrong files, nothing leaks
 python3 <isaymotion-app-design>/scripts/check_sw.py .
 python3 <isaymotion-app-design>/scripts/check_design.py . --browser   # then delete _qa/
 ```
 
-Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. Both checks print PASS.
+Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. Both checks print PASS.
 
 ## 6. Status
 
@@ -78,29 +81,23 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 |---|---|
 | 1.0.0 department build | Done, pushed |
 | 1.1.0 My card placement and layout (other chat) | Done, pushed; tests pass on it |
+| 1.1.1 Home banner (other chat) | Done, pushed |
+| 1.1.2 Bring card from a Batch Tickler backup file | Done 11 Nov 2026, pushed (`95a9254`); t3 added on dev-tools. Not yet tried by her on a real installed iPhone/iPad |
 | Tagalog for `pt.*` and reworded `bt.*` strings | Draft, awaiting her review |
 | `firestore.rules` on the real project | Combined file PUBLISHED in Firebase 11 Nov 2026 (no errors). Behaviour not yet verified by a two-account test |
 | GitHub Pages switched on, rules pasted, department space created | Done 11 Nov 2026: rules published, space "MMWGH Psychiatry" created by the owner (join code is hers; not stored here) |
-| Bring card from Batch Tickler | BROKEN in practice when the apps are installed (see pitfalls); fix is 1.1.1 |
+| Bring card from Batch Tickler | Fixed in 1.1.2: file route for installed apps; same-browser route still works |
 | Doc Andrei and Doc Vince made admins | After they join |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
 
-1. **Build 1.1.1: bring card from a Batch Tickler backup file** (she approved it).
-   - Why: on iPhone/iPad (and Safari "Add to Dock" on Mac) each installed Home Screen web app has its own storage, so installed Psych Tickler cannot read `bt:v1:me` from installed Batch Tickler. She has both apps installed on laptop, iPad and iPhone, and `#/bring` shows "No Batch Tickler card on this device" everywhere.
-   - Batch Tickler backup file (Batch Tickler ☰ › Backup › Export, `batchtickler-backup-YYYY-MM-DD.json`): `{app: 'batchtickler', format: 1, exported, attribution, summary, data}`; `data` maps keys WITHOUT the `bt:v1:` prefix to stored strings, so the card is `JSON.parse(data.me)`.
-   - In `js/app.js` (bring section, about line 4543): add a file input "Choose a Batch Tickler backup file" both in the "none found" state and below the found card. Accept only `app === 'batchtickler'`; read ONLY `data.me`; check it with the same test as `btCard()` (object with a name); hold it in memory and render the same ticks form from it (refactor `VIEWS.bring`/`AFTER.bring` to take a card source). Never import any other key, never write `bt:v1:*`, never touch Psych Tickler backup/restore (`psychtickler` id stays).
-   - Clear error for a Psych Tickler backup or any other file; size limit (photos make files large; allow a few MB).
-   - Show the Home strip/link to `#/bring` even when no local card is found, at least while the user has no card yet, so installed users can find the file option. Update `pt.bring.none` text to tell them to export a backup in Batch Tickler and pick it here.
-   - Strings in `data/strings-pt.js`, English + Tagalog (Tagalog via a Sonnet subagent, drafts).
-   - Tests: extend `t1.py` (or add `t3.py` on dev-tools) to feed a sample backup file with `set_input_files`, bring it, and confirm contact/emergency stay unticked and the card saves; also a wrong-app file shows the error.
-   - Release: 1.1.1 in `data/app-meta.js`, `VERSION` in `sw.js` (`psychtickler-1.1.1`), changelog entry, README (bring section). No `firestore.rules` change. Push `main`, push tools to `dev-tools`.
-   - Afterwards give her the steps: export in Batch Tickler, then Psych Tickler ☰ › Bring my card › choose file.
+1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
-3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill).
-4. Later: DutySched publishing, then "on duty today".
+3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill). The message should include the backup-file steps for bringing a Batch Tickler card.
+4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent).
+5. Later: DutySched publishing, then "on duty today".
 
 ## 8. Pitfalls learned
 
@@ -115,6 +112,9 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 - A fresh clone of an empty repo has no `origin/main` ref until the first fetch names it; use `git pull origin main`.
 
 - Installed web apps on iOS/iPadOS (and Safari Add to Dock) do NOT share localStorage with each other or with the browser, even on the same origin. Anything that reads another app's local data must also offer a file route.
+
+- Parallel chats can take a version number. Before a release, `git pull` and read the top of `data/changelog.js`; use the next free version (1.1.1 was taken, so the backup-file build became 1.1.2).
+- `BK_APP` is declared with `var` further down `js/app.js` than the bring section; it is only read inside handlers at run time, so that is fine.
 
 ## 9. Files to re-attach
 
