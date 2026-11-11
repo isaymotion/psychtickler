@@ -15,6 +15,7 @@ A directory for the whole MMWGH Psychiatry department, all residents and consult
 - **Admins in the database**: the owner account in `CLOUD_CONFIG.admins` creates the department space and makes other members admins (Cloud sync › Admin › Make admin). Admins approve requests, set each member's position and batch year, and mark people Alumni instead of removing them.
 - **Chat**: every channel has an audience (`aud`: everyone, residents only, or one batch), fixed when it is opened. Starting channels include #announcements, #kudos and a residents-only #residents; each batch gets a private #batch-YYYY the first time one of its members opens Chat. A "No patient details" rule is pinned on every chat screen. Photos are capped at about 300 KB and an admin's phone clears photos older than 90 days (`chatImgMax`, `chatImgKeepDays` in data/cloud.js).
 - **New screens**: Year-level cup (`#/cup`), Buddies and coffee roulette (`#/buddies`), Kudos wall (`#/kudos`), Advice wall (`#/advice`), Polls and potluck (`#/polls`).
+- **Didactics day (1.2.0)**: every Thursday Home shows a Didactics day card (a heads-up on Wednesdays), and Department events (`#/events`) pins a weekly row with the next Thursday and an "Add every Thursday to my calendar" .ics (`RRULE:FREQ=WEEKLY;BYDAY=TH`). Worked out on the phone; the weekday is `DD_DOW` in `js/app.js`.
 - **Not built yet**: "who is on duty today" needs DutySched to publish duties to the program-wide space first.
 
 ## Firebase: one project, two apps

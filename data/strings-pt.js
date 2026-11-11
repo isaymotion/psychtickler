@@ -191,7 +191,18 @@
     'pt.poll.reopen': 'Reopen',
     'pt.poll.delete': 'Delete',
     'pt.poll.confirmDel': 'Delete this and all its answers?',
-    'pt.poll.none': 'No polls yet. Start one above.'
+    'pt.poll.none': 'No polls yet. Start one above.',
+
+    /* 1.2.0 Didactics day (every Thursday) */
+    'pt.dd.title': 'Didactics day',
+    'pt.dd.todayH': 'Today is Didactics day',
+    'pt.dd.today': 'Every Thursday is Didactics day for the whole department. See you there!',
+    'pt.dd.tomorrowH': 'Tomorrow is Didactics day',
+    'pt.dd.tomorrow': 'Thursday is Didactics day. Get your readings and presentations ready.',
+    'pt.dd.every': 'Every Thursday',
+    'pt.dd.next': 'Next: {date}',
+    'pt.dd.cal': 'Add every Thursday to my calendar',
+    'pt.dd.note': 'Weekly Didactics day for the MMWGH Psychiatry department.'
   };
   var tl = {
     'nav.bring': 'Dalhin ang card ko mula sa Batch Tickler',
@@ -382,7 +393,17 @@
     'pt.poll.reopen': 'Buksan ulit',
     'pt.poll.delete': 'Burahin',
     'pt.poll.confirmDel': 'Burahin ito at lahat ng sagot nito?',
-    'pt.poll.none': 'Wala pang poll. Magsimula ng isa sa itaas.'
+    'pt.poll.none': 'Wala pang poll. Magsimula ng isa sa itaas.',
+
+    'pt.dd.title': 'Didactics day',
+    'pt.dd.todayH': 'Didactics day ngayon',
+    'pt.dd.today': 'Tuwing Huwebes ay Didactics day ng buong department. Kita-kits!',
+    'pt.dd.tomorrowH': 'Didactics day bukas',
+    'pt.dd.tomorrow': 'Didactics day sa Huwebes. Ihanda na ang readings at presentation mo.',
+    'pt.dd.every': 'Tuwing Huwebes',
+    'pt.dd.next': 'Susunod: {date}',
+    'pt.dd.cal': 'Idagdag ang bawat Huwebes sa calendar ko',
+    'pt.dd.note': 'Lingguhang Didactics day ng MMWGH Psychiatry department.'
   };
   var S = window.STRINGS = window.STRINGS || { en: {}, tl: {} };
   Object.keys(en).forEach(function (k) { S.en[k] = en[k]; });

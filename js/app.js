@@ -4645,6 +4645,54 @@
     };
   })();
 
+  /* ===================== PSYCH TICKLER 1.2.0: DIDACTICS DAY (EVERY THURSDAY) =====================
+     A built-in weekly reminder, worked out on the phone (no cloud data): a Home card on Thursdays (and a heads-up
+     on Wednesdays), a pinned row on Department events with the next date, and a weekly .ics (RRULE BYDAY=TH). */
+  var DD_DOW = 4;   // 0 Sunday … 4 Thursday
+  function ddNext(today) { var d = new Date(today.getFullYear(), today.getMonth(), today.getDate()); d.setDate(d.getDate() + ((DD_DOW - d.getDay() + 7) % 7)); return d; }
+  function ddIso(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function ddHome(today) {
+    var dow = today.getDay(), k = dow === DD_DOW ? 'today' : dow === (DD_DOW + 6) % 7 ? 'tomorrow' : '';
+    if (!k) return '';
+    return '<section class="callout dd-home" aria-live="polite"><p class="callout__title">' + icon('school', 'dd-ico') + ' ' + esc(t('pt.dd.' + k + 'H')) + '</p><p>' + esc(t('pt.dd.' + k)) + ' <a href="#/events">' + esc(t('nav.events')) + '</a></p></section>';
+  }
+  function ddIcs() {
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z'), n = ddNext(new Date()), nx = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//isaymotion//Psych Tickler//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:' + icsEscape(t('pt.dd.title')),
+      'BEGIN:VEVENT', 'UID:didactics-day@psychtickler.isaymotion.github.io', 'DTSTAMP:' + stamp,
+      'DTSTART;VALUE=DATE:' + icsDate(n.getFullYear(), n.getMonth() + 1, n.getDate()), 'DTEND;VALUE=DATE:' + icsDate(nx.getFullYear(), nx.getMonth() + 1, nx.getDate()),
+      'RRULE:FREQ=WEEKLY;BYDAY=TH', 'SUMMARY:' + icsEscape('📚 ' + t('pt.dd.title')), 'DESCRIPTION:' + icsEscape(t('pt.dd.note')), 'LOCATION:' + icsEscape(HOSP.name || ''), 'TRANSP:TRANSPARENT', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n') + '\r\n';
+  }
+  function ddIcsOut(cb) {
+    var ics = ddIcs(), name = 'didactics-day.ics', file = null;
+    try { file = new File([ics], name, { type: 'text/calendar' }); } catch (e) {}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: t('pt.dd.title') }).then(function () { cb(tf('bt.cal.saved', { name: name })); }).catch(function () { cb(t('bt.share.cancelled')); }); return; }
+    var url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), a = document.createElement('a'); a.href = url; a.download = name; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); cb(tf('bt.cal.saved', { name: name }));
+  }
+  (function () {
+    var home0 = VIEWS.home;
+    VIEWS.home = function () {   // just under the chat card and Your card strip, above the birthday banner
+      var html = home0.apply(null, arguments), card = ddHome(new Date()), w = '<div class="wrap home">';
+      if (!card) return html;
+      var at = html.indexOf('<section class="card nv-me');
+      if (at >= 0) { var end = html.indexOf('</section>', at); if (end >= 0) { end += 10; return html.slice(0, end) + card + html.slice(end); } }
+      return html.replace(w, w + card);
+    };
+    var ev0 = VIEWS.events, evA = AFTER.events;
+    VIEWS.events = function () {
+      var html = ev0.apply(null, arguments), today = new Date(), n = ddNext(today), when = evWhen({ date: ddIso(n) }, today);
+      var row = '<section class="card dd-ev"><div class="ev__when"><span class="ev__d">' + esc(when) + '</span></div><div class="ev__body"><strong>📚 ' + esc(t('pt.dd.title')) + '</strong><span class="muted">' + esc(t('pt.dd.every')) + ' · ' + esc(tf('pt.dd.next', { date: evDate({ date: ddIso(n), time: '' }) })) + '</span>' +
+        '<span class="ev__acts"><button type="button" class="link-btn" id="dd-cal">' + esc(t('pt.dd.cal')) + '</button></span><span class="form__status" id="dd-status" role="status"></span></div></section>';
+      return html.replace('<div class="ev-layout">', row + '<div class="ev-layout">');
+    };
+    AFTER.events = function () {
+      if (evA) evA.apply(null, arguments);
+      var b = document.getElementById('dd-cal'), st = document.getElementById('dd-status');
+      if (b) b.addEventListener('click', function () { ddIcsOut(function (m) { st.textContent = m; }); });
+    };
+  })();
+
   /* ===================== PSYCH TICKLER 1.0.0: FUN FOR A BIGGER GROUP =====================
      Year-level cup (#/cup), Buddies and coffee roulette (#/buddies), Kudos wall (#/kudos), Advice wall (#/advice),
      Polls and potluck (#/polls, cloud). The first four are worked out on the phone from the cards already synced. */

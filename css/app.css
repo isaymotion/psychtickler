@@ -1136,3 +1136,9 @@ body.is-chat-room .site-foot{padding-bottom:env(safe-area-inset-bottom,0px)}
 .hero--banner:has(.hero__img:not(.hero__img--custom)) .hero__lead{display:none}
 .hero--banner:has(.hero__img:not(.hero__img--custom)) .hero__inner p{margin:0}
 .hero--banner:has(.hero__img:not(.hero__img--custom)) .hero__kicker{margin-bottom:8px}
+
+/* Psych Tickler 1.2.0: Didactics day */
+.dd-home .callout__title{display:flex;align-items:center;gap:6px}
+.dd-ico{width:18px;height:18px;flex:none}
+.dd-ev{display:flex;gap:14px;align-items:flex-start;margin:0 0 16px;padding:14px 16px}
+.dd-ev .ev__body{display:flex;flex-direction:column;gap:2px;min-width:0}

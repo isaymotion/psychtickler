@@ -4,6 +4,13 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.2.0', date: '2026-11-11', title: 'Didactics day every Thursday',
+    items: [
+      { type: 'feature', text: 'Didactics day: every Thursday, Home shows a Didactics day reminder, and on Wednesdays a heads-up that it is tomorrow.', href: '#/' },
+      { type: 'feature', text: 'Department events: Didactics day is pinned at the top with the next Thursday, and one tap adds every Thursday to your phone calendar.', href: '#/events' }
+    ]
+  },
+  {
     version: '1.1.2', date: '2026-11-11', title: 'Bring your card from a Batch Tickler backup file',
     items: [
       { type: 'feature', text: 'Bring my card now works with installed apps: in Batch Tickler tap ☰ › Backup › Export, then in Psych Tickler open Bring my card and choose that file. Only your card is read from it; contact and emergency details stay unticked unless you tick them.', href: '#/bring' },
