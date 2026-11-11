@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.1.0 (commit `1aa5538` on `main`).
+Last updated 11 November 2026, at version 1.1.0 (commit `1aa5538` on `main`). Baseline re-checked the same day: all tests pass. Combined rules copied into `tickler` (commit `8d965bc`).
 
 ## 1. Project and audience
 
@@ -44,7 +44,7 @@ Firestore, under `programs/{code}/`:
 - `channels/{id}` with `aud` (`all` | `res` | `b2027`), `messages`, `reports`, `events`
 - `polls/{id}` and `polls/{id}/votes/{uid}`
 
-`firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file.
+`firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
 
 Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar.
 
@@ -52,7 +52,7 @@ Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`
 
 1. Clone `main`; restore tools from `dev-tools` (section 5); run the tests for a baseline.
 2. Edit. New UI text goes in `data/strings-pt.js` in both languages. New screens: `VIEWS.x`, `AFTER.x`, `TITLES.x`, a `NAV` entry.
-3. New cloud data: adapter method in `js/cloud.js`, a rule in `firestore.rules`, and the same method in `tools/mock.js`.
+3. New cloud data: adapter method in `js/cloud.js`, a rule in `firestore.rules` (then copy the file into `isaymotion/tickler` too), and the same method in `tools/mock.js`.
 4. Bump version in `data/app-meta.js`, `sw.js`, `data/changelog.js`; update README.
 5. Run all checks (section 5). Commit, push `main`.
 6. Tell her which files changed, that `sw.js` was bumped, and whether `firestore.rules` must be pasted again.
@@ -82,13 +82,13 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | `firestore.rules` on the real project | NOT verified. Never run on an emulator or live |
 | GitHub Pages switched on, rules pasted, department space created | Hers to do; not confirmed |
 | Doc Andrei and Doc Vince made admins | After they join |
-| Combined rules file copied into `isaymotion/tickler` | Not done (offered) |
+| Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
 
 1. Ask her whether Pages is on, the rules are published and the space is created; help with any rule error (`permission-denied`) from a two-account test (one resident, one consultant).
-2. If she agrees, copy `firestore.rules` into the `tickler` repo so the old file is never pasted again.
+2. (Done) Rules copied into `tickler`.
 3. Next version is 1.1.1 or 1.2.0; next cache name `psychtickler-<that version>`.
 4. Later: DutySched publishing, then "on duty today".
 
