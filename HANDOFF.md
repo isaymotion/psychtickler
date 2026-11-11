@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.1.2 (commit `95a9254` on `main`). All tests (t1, t2, t3) and both checks pass. 1.1.1 (Home banner) was made by a parallel chat; 1.1.2 adds bring-from-backup-file. Next: two-account test (section 7).
+Last updated 11 November 2026, at version 1.2.0 (commit `3605fdf` on `main`). All tests (t1, t2, t3) and both checks pass. 1.2.0 adds the Thursday Didactics day reminder. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -46,6 +46,8 @@ Firestore, under `programs/{code}/`:
 
 `firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
 
+Didactics day (1.2.0) is phone-only (no cloud data), in the section just before `PSYCH TICKLER 1.0.0: FUN`; it wraps `VIEWS.home`, `VIEWS.events` and `AFTER.events`.
+
 Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar. 1.1.1 (other chat) tidied the Home banner picture.
 
 Bring section (`js/app.js`, just before `PSYCH TICKLER 1.0.0: FUN`): `btCheck()` validates a card; `btCard()` reads `bt:v1:me`; `bringFile` holds a card read from a Batch Tickler backup file (memory only, cleared after a bring); `bringSrc()` prefers the file over the local card; `bringStrip()` is the Home/My card link (shown whenever `getMe()` is empty); `bringPicker()` is the file input; `BRING_FILE_MAX` 15 MB.
@@ -89,6 +91,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | Bring card from Batch Tickler | Fixed in 1.1.2: file route for installed apps; same-browser route still works |
 | Doc Andrei and Doc Vince made admins | After they join |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
+| 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
