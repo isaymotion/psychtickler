@@ -407,7 +407,7 @@
     'pt.dd.cal': 'Idagdag ang bawat Huwebes sa calendar ko',
     'pt.dd.note': 'Lingguhang Didactics day ng MMWGH Psychiatry department.',
     'pt.ev.register': 'Mag-register',
-    'pt.ev.now': 'Nagaganap ngayon'
+    'pt.ev.now': 'Ginaganap ngayon'
   };
   var S = window.STRINGS = window.STRINGS || { en: {}, tl: {} };
   Object.keys(en).forEach(function (k) { S.en[k] = en[k]; });

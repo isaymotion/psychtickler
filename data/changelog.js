@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.2.2', date: '2026-11-11', title: 'Tagalog wording',
+    items: [
+      { type: 'correction', text: 'Tagalog: an event that is on now says "Ginaganap ngayon".', href: '#/events' }
+    ]
+  },
+  {
     version: '1.2.1', date: '2026-11-11', title: 'PPA 2027 conventions on Department events',
     items: [
       { type: 'content', text: 'Department events now shows Psychiatry Without Borders, the PRCP–PPA Congress 2027 (19–22 January 2027, Crowne Plaza Hotel Galleria), with a Register link and the Annual and Midyear attendee lists.', href: '#/events' },
