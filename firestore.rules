@@ -1,0 +1,298 @@
+rules_version = '2';
+// ONE RULES FILE FOR BOTH APPS. Batch Tickler and Psych Tickler share the Firebase project "batch-tickler",
+// and a project has a single Firestore rules file. This file contains BOTH sets of rules:
+//   /batches/{b}/…   Batch Tickler  (unchanged from its 1.21.0 rules)
+//   /programs/{p}/…  Psych Tickler  (1.0.0)
+// Paste this whole file into Firebase console › Databases & Storage › Firestore › Rules, then Publish.
+// Never paste the older Batch Tickler-only file again: it would switch Psych Tickler off.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && request.auth.token.email_verified == true
+        && request.auth.token.email in ['isaymotion@gmail.com'];
+    }
+    function isMember(b) {
+      return signedIn() && exists(/databases/$(database)/documents/batches/$(b)/members/$(request.auth.uid));
+    }
+    function shortText(v, n) { return v is string && v.size() <= n; }
+
+    // ===================================== BATCH TICKLER =====================================
+    match /batches/{b} {
+      allow get: if signedIn();              // the join code is the document id
+      allow list, create, update, delete: if isAdmin();
+
+      match /requests/{uid} {
+        allow create, update: if signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['name', 'email', 'created'])
+          && shortText(request.resource.data.name, 80)
+          && request.resource.data.email == request.auth.token.email;
+        allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+        allow list: if isAdmin();
+        allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      }
+
+      match /members/{uid} {
+        allow get: if signedIn() && (request.auth.uid == uid || isMember(b) || isAdmin());
+        allow list: if isMember(b) || isAdmin();
+        allow create, update: if isAdmin();
+        allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      }
+
+      match /cards/{cardId} {
+        allow read: if isMember(b) || isAdmin();
+        allow create: if isMember(b)
+          && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number
+          && request.resource.data.card is map
+          && request.resource.data.card.id == cardId;
+        allow update: if isMember(b)
+          && resource.data.owner == request.auth.uid
+          && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number
+          && request.resource.data.card is map
+          && request.resource.data.card.id == cardId;
+        allow delete: if isAdmin() || (signedIn() && resource.data.owner == request.auth.uid);
+      }
+
+      match /events/{id} {
+        allow read: if isMember(b) || isAdmin();
+        allow create, update: if (isMember(b) || isAdmin())
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.updated is number
+          && shortText(request.resource.data.title, 80);
+        allow delete: if isAdmin();
+      }
+
+      // 1.21.0 chat. Any member may open a channel; its creator (or the admin) renames or deletes it.
+      // Everyone may update a channel's "last" (written together with each new message).
+      match /channels/{ch} {
+        allow read: if isMember(b) || isAdmin();
+        allow create: if (isMember(b) || isAdmin())
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name', 'emoji', 'order', 'by', 'created', 'last', 'lastName'])
+          && shortText(request.resource.data.name, 30)
+          && shortText(request.resource.data.emoji, 16);
+        allow update: if (isMember(b) || isAdmin()) && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['last', 'lastName'])
+          || ((resource.data.by == request.auth.uid || isAdmin())
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'emoji', 'last', 'lastName'])
+              && shortText(request.resource.data.name, 30)
+              && shortText(request.resource.data.emoji, 16)));
+        allow delete: if isAdmin() || (signedIn() && resource.data.by == request.auth.uid);
+
+        match /messages/{mid} {
+          allow read: if isMember(b) || isAdmin();
+          // own messages only, sensible sizes; photos are data URLs inside the message (Firestore 1 MiB per doc)
+          allow create: if (isMember(b) || isAdmin())
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['uid', 'cardId', 'name', 'text', 'links', 'img', 'sticker', 'replyTo', 'created'])
+            && shortText(request.resource.data.name, 80)
+            && request.resource.data.created is number
+            && request.resource.data.created > request.time.toMillis() - 600000
+            && request.resource.data.created < request.time.toMillis() + 600000
+            && (!('text' in request.resource.data) || shortText(request.resource.data.text, 2000))
+            && (!('sticker' in request.resource.data) || shortText(request.resource.data.sticker, 60))
+            && (!('links' in request.resource.data) || (request.resource.data.links is list && request.resource.data.links.size() <= 5))
+            && (!('replyTo' in request.resource.data) || request.resource.data.replyTo is map)
+            && (!('img' in request.resource.data) || (request.resource.data.img is map
+                && request.resource.data.img.data is string && request.resource.data.img.data.size() < 960000));
+          // reactions: any member, nothing else may change
+          allow update: if (isMember(b) || isAdmin())
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['react'])
+            && request.resource.data.react is map && request.resource.data.react.size() <= 8;
+          // the author, the channel's creator or the admin
+          allow delete: if isAdmin() || (signedIn() && (resource.data.uid == request.auth.uid
+            || get(/databases/$(database)/documents/batches/$(b)/channels/$(ch)).data.by == request.auth.uid));
+        }
+      }
+
+      // a member flags a message; only the admin sees and clears the list
+      match /reports/{id} {
+        allow create: if isMember(b)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['ch', 'mid', 'author', 'text', 'reporter', 'by', 'created'])
+          && shortText(request.resource.data.text, 300);
+        allow read, delete: if isAdmin();
+      }
+    }
+
+    // ===================================== PSYCH TICKLER =====================================
+    // Owner: the account(s) that create the department space and name other admins (same list as CLOUD_CONFIG.admins).
+    // Admins: the owner, plus any member whose member row has admin == true (set by the owner in Cloud sync › Admins).
+    // Member row: { name, email, joined, role: 'resident' | 'consultant' | 'alumni', batch: <year entered residency or 0>, admin: bool }.
+    function isOwner() { return isAdmin(); }
+    function pMember(p) { return get(/databases/$(database)/documents/programs/$(p)/members/$(request.auth.uid)).data; }
+    function pIsMember(p) { return signedIn() && exists(/databases/$(database)/documents/programs/$(p)/members/$(request.auth.uid)); }
+    function pIsAdmin(p) { return isOwner() || (pIsMember(p) && pMember(p).get('admin', false) == true); }
+    function pIsResident(p) { return pIsMember(p) && pMember(p).get('role', 'resident') != 'consultant'; }
+    function pBatch(p) { return pMember(p).get('batch', 0); }
+    function okRole(r) { return r in ['resident', 'consultant', 'alumni']; }
+    // Who may read something marked for an audience: 'all' = every member, 'res' = everyone except consultants,
+    // 'b2027' = members whose batch is 2027.
+    function pCanSee(p, aud) {
+      return pIsMember(p) && (aud == 'all' || (aud == 'res' && pIsResident(p)) || (pBatch(p) > 0 && aud == 'b' + string(pBatch(p))));
+    }
+
+    match /programs/{p} {
+      allow get: if signedIn();              // the join code is the document id
+      allow list, create, delete: if isOwner();
+      allow update: if pIsAdmin(p);
+
+      match /requests/{uid} {
+        allow create, update: if signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['name', 'email', 'created', 'role', 'batch'])
+          && shortText(request.resource.data.name, 80)
+          && request.resource.data.email == request.auth.token.email
+          && okRole(request.resource.data.role)
+          && request.resource.data.batch is int;
+        allow get: if signedIn() && (request.auth.uid == uid || pIsAdmin(p));
+        allow list: if pIsAdmin(p);
+        allow delete: if pIsAdmin(p) || (signedIn() && request.auth.uid == uid);
+      }
+
+      match /members/{uid} {
+        allow get: if signedIn() && (request.auth.uid == uid || pIsMember(p) || isOwner());
+        allow list: if pIsMember(p) || isOwner();
+        // An admin adds people (never as admins) and changes role and batch; only the owner changes the admin flag.
+        allow create: if pIsAdmin(p)
+          && okRole(request.resource.data.role) && request.resource.data.batch is int
+          && (isOwner() || request.resource.data.get('admin', false) == false);
+        allow update: if pIsAdmin(p)
+          && okRole(request.resource.data.role) && request.resource.data.batch is int
+          && (isOwner() || request.resource.data.get('admin', false) == resource.data.get('admin', false));
+        allow delete: if pIsAdmin(p) || (signedIn() && request.auth.uid == uid);
+      }
+
+      // The card everyone in the department sees. Fields their owner restricted are NOT in here (see the two matches below).
+      match /cards/{cardId} {
+        allow read: if pIsMember(p) || isOwner();
+        allow create: if pIsMember(p)
+          && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number
+          && request.resource.data.card is map
+          && request.resource.data.card.id == cardId;
+        allow update: if pIsMember(p)
+          && resource.data.owner == request.auth.uid
+          && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number
+          && request.resource.data.card is map
+          && request.resource.data.card.id == cardId;
+        allow delete: if pIsAdmin(p) || (signedIn() && resource.data.owner == request.auth.uid);
+      }
+
+      // "Residents only" fields: readable by every member who is not a consultant (and by their owner).
+      match /partsRes/{cardId} {
+        allow read: if pIsResident(p) || (signedIn() && resource.data.owner == request.auth.uid);
+        allow create: if pIsMember(p) && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number && request.resource.data.fields is map;
+        allow update: if pIsMember(p) && resource.data.owner == request.auth.uid && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number && request.resource.data.fields is map;
+        allow delete: if pIsAdmin(p) || (signedIn() && resource.data.owner == request.auth.uid);
+      }
+
+      // "My batch only" fields: one folder per batch year; only members of that batch read or write in it.
+      match /byBatch/{year}/parts/{cardId} {
+        function mine() { return pIsMember(p) && pBatch(p) > 0 && string(pBatch(p)) == year; }
+        allow read: if mine();
+        allow create: if mine() && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number && request.resource.data.fields is map;
+        allow update: if mine() && resource.data.owner == request.auth.uid && request.resource.data.owner == request.auth.uid
+          && request.resource.data.updated is number && request.resource.data.fields is map;
+        allow delete: if pIsAdmin(p) || (signedIn() && resource.data.owner == request.auth.uid);
+      }
+
+      match /events/{id} {
+        allow read: if pIsMember(p) || isOwner();
+        allow create, update: if pIsMember(p)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.updated is number
+          && shortText(request.resource.data.title, 80);
+        allow delete: if pIsAdmin(p);
+      }
+
+      // Chat. Every channel has an audience (aud); a member only reads, lists, opens and writes in channels they can see.
+      match /channels/{ch} {
+        function chAud() { return get(/databases/$(database)/documents/programs/$(p)/channels/$(ch)).data.aud; }
+        // get also answers for a channel that does not exist yet (the app checks a name is free before opening one)
+        allow get: if pIsMember(p) && (resource == null || pCanSee(p, resource.data.aud));
+        allow list: if pCanSee(p, resource.data.aud);
+        allow create: if pCanSee(p, request.resource.data.aud)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name', 'emoji', 'order', 'by', 'created', 'last', 'lastName', 'aud'])
+          && shortText(request.resource.data.name, 30)
+          && shortText(request.resource.data.emoji, 16)
+          && shortText(request.resource.data.aud, 8);
+        // the audience of a channel never changes after it is opened
+        allow update: if pCanSee(p, resource.data.aud) && request.resource.data.aud == resource.data.aud && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['last', 'lastName'])
+          || ((resource.data.by == request.auth.uid || pIsAdmin(p))
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'emoji', 'last', 'lastName'])
+              && shortText(request.resource.data.name, 30)
+              && shortText(request.resource.data.emoji, 16)));
+        allow delete: if pCanSee(p, resource.data.aud) && (pIsAdmin(p) || resource.data.by == request.auth.uid);
+
+        match /messages/{mid} {
+          allow read: if pCanSee(p, chAud());
+          // own messages only, sensible sizes; photos are data URLs inside the message, capped at about 300 KB
+          allow create: if pCanSee(p, chAud())
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.keys().hasOnly(['uid', 'cardId', 'name', 'text', 'links', 'img', 'sticker', 'replyTo', 'created'])
+            && shortText(request.resource.data.name, 80)
+            && request.resource.data.created is number
+            && request.resource.data.created > request.time.toMillis() - 600000
+            && request.resource.data.created < request.time.toMillis() + 600000
+            && (!('text' in request.resource.data) || shortText(request.resource.data.text, 2000))
+            && (!('sticker' in request.resource.data) || shortText(request.resource.data.sticker, 60))
+            && (!('links' in request.resource.data) || (request.resource.data.links is list && request.resource.data.links.size() <= 5))
+            && (!('replyTo' in request.resource.data) || request.resource.data.replyTo is map)
+            && (!('img' in request.resource.data) || (request.resource.data.img is map
+                && request.resource.data.img.data is string && request.resource.data.img.data.size() < 420000));
+          // reactions: anyone who can see the channel, nothing else may change
+          allow update: if pCanSee(p, chAud())
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['react'])
+            && request.resource.data.react is map && request.resource.data.react.size() <= 8;
+          // the author, the channel's creator or an admin who can see the channel
+          allow delete: if pCanSee(p, chAud()) && (pIsAdmin(p) || resource.data.uid == request.auth.uid
+            || get(/databases/$(database)/documents/programs/$(p)/channels/$(ch)).data.by == request.auth.uid);
+        }
+      }
+
+      // a member flags a message; only admins see and clear the list
+      match /reports/{id} {
+        allow create: if pIsMember(p)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['ch', 'mid', 'author', 'text', 'reporter', 'by', 'created'])
+          && shortText(request.resource.data.text, 300);
+        allow read, delete: if pIsAdmin(p);
+      }
+
+      // Polls and potluck sign-ups: any member starts one; one vote / one dish per member; the starter or an admin closes or deletes it.
+      match /polls/{id} {
+        allow read: if pIsMember(p);
+        allow create: if pIsMember(p)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['kind', 'q', 'opts', 'by', 'name', 'created', 'closed'])
+          && request.resource.data.kind in ['poll', 'potluck']
+          && shortText(request.resource.data.q, 140) && shortText(request.resource.data.name, 80)
+          && request.resource.data.opts is list && request.resource.data.opts.size() <= 12
+          && request.resource.data.closed == false;
+        allow update: if pIsMember(p) && (resource.data.by == request.auth.uid || pIsAdmin(p))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed']);
+        allow delete: if pIsMember(p) && (resource.data.by == request.auth.uid || pIsAdmin(p));
+
+        match /votes/{uid} {
+          allow read: if pIsMember(p);
+          allow create, update: if pIsMember(p) && request.auth.uid == uid
+            && get(/databases/$(database)/documents/programs/$(p)/polls/$(id)).data.closed == false
+            && request.resource.data.keys().hasOnly(['o', 'name', 'text', 'at'])
+            && request.resource.data.o is int && request.resource.data.o >= 0 && request.resource.data.o < 12
+            && shortText(request.resource.data.name, 80) && shortText(request.resource.data.text, 80);
+          allow delete: if pIsMember(p) && (request.auth.uid == uid || pIsAdmin(p)
+            || get(/databases/$(database)/documents/programs/$(p)/polls/$(id)).data.by == request.auth.uid);
+        }
+      }
+    }
+  }
+}

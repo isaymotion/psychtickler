@@ -1,0 +1,15 @@
+{
+  "name": "Psych Tickler",
+  "short_name": "Psych Tickler",
+  "description": "A directory for the MMWGH Psychiatry department: residents and consultants fill in their own card and get to know each other's hometowns, interests, birthdays and favourites.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F4FB",
+  "theme_color": "#160E20",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

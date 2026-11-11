@@ -1,0 +1,71 @@
+/* 1.15.0 fun content. Ids are stable keys stored on cards — never renumber; add new ones at the end.
+   THIS_OR_THAT: [{id, a:{en,tl}, b:{en,tl}}]   SUPERLATIVES: [{id, en, tl}]   QOTW: [{en, tl}] (one per week, in order) */
+window.THIS_OR_THAT = [
+  { id: 'coffee', a: { en: 'Coffee', tl: 'Kape' }, b: { en: 'Milk tea', tl: 'Milk tea' } },
+  { id: 'beach', a: { en: 'Beach', tl: 'Beach' }, b: { en: 'Mountains', tl: 'Bundok' } },
+  { id: 'jollibee', a: { en: 'Jollibee', tl: 'Jollibee' }, b: { en: 'McDo', tl: 'McDo' } },
+  { id: 'morning', a: { en: 'Morning person', tl: 'Pang-umaga' }, b: { en: 'Night owl', tl: 'Puyat-type' } },
+  { id: 'cats', a: { en: 'Cats', tl: 'Pusa' }, b: { en: 'Dogs', tl: 'Aso' } },
+  { id: 'sweet', a: { en: 'Sweet', tl: 'Matamis' }, b: { en: 'Salty', tl: 'Maalat' } },
+  { id: 'rice', a: { en: 'Unli-rice', tl: 'Unli-rice' }, b: { en: 'Low-carb', tl: 'Low-carb' } },
+  { id: 'call', a: { en: 'Call', tl: 'Tawag' }, b: { en: 'Text', tl: 'Text' } },
+  { id: 'movie', a: { en: 'Movie at home', tl: 'Movie sa bahay' }, b: { en: 'Cinema', tl: 'Sinehan' } },
+  { id: 'adobo', a: { en: 'Adobo', tl: 'Adobo' }, b: { en: 'Sinigang', tl: 'Sinigang' } },
+  { id: 'summer', a: { en: 'Summer', tl: 'Tag-init' }, b: { en: 'Rainy season', tl: 'Tag-ulan' } },
+  { id: 'plan', a: { en: 'Planner', tl: 'Planado' }, b: { en: 'Go with the flow', tl: 'Bahala na' } },
+  { id: 'ebook', a: { en: 'Paper book', tl: 'Librong papel' }, b: { en: 'E-book', tl: 'E-book' } },
+  { id: 'karaoke', a: { en: 'Karaoke', tl: 'Videoke' }, b: { en: 'Board games', tl: 'Board games' } },
+  { id: 'iphone', a: { en: 'iPhone', tl: 'iPhone' }, b: { en: 'Android', tl: 'Android' } },
+  { id: 'spicy', a: { en: 'Spicy', tl: 'Maanghang' }, b: { en: 'Mild', tl: 'Hindi maanghang' } },
+  { id: 'stay', a: { en: 'Staycation', tl: 'Staycation' }, b: { en: 'Road trip', tl: 'Road trip' } },
+  { id: 'notes', a: { en: 'Handwritten notes', tl: 'Sulat-kamay na notes' }, b: { en: 'Typed notes', tl: 'Typed na notes' } },
+  { id: 'aircon', a: { en: 'Aircon on 18°', tl: 'Aircon sa 18°' }, b: { en: 'Electric fan', tl: 'Electric fan' } },
+  { id: 'kdrama', a: { en: 'K-drama', tl: 'K-drama' }, b: { en: 'Anime', tl: 'Anime' } }
+];
+
+window.SUPERLATIVES = [
+  { id: 'snacks', en: 'Most likely to bring snacks to duty', tl: 'Pinakamalamang magdala ng snacks sa duty' },
+  { id: 'calm', en: 'Calmest during a code', tl: 'Pinakakalmado kapag may code' },
+  { id: 'notes', en: 'Best notes in the department', tl: 'Pinakamagandang notes sa department' },
+  { id: 'hugot', en: 'Hugot master', tl: 'Hugot master' },
+  { id: 'chef', en: 'Department chef', tl: 'Chef ng department' },
+  { id: 'dj', en: 'Official department DJ', tl: 'Opisyal na DJ ng department' },
+  { id: 'early', en: 'Always early', tl: 'Laging maaga' },
+  { id: 'laugh', en: 'Best laugh', tl: 'Pinakamagandang tawa' },
+  { id: 'organizer', en: 'Most likely to organize the outing', tl: 'Pinakamalamang mag-organize ng outing' },
+  { id: 'memes', en: 'Meme lord of the group chat', tl: 'Meme lord ng group chat' },
+  { id: 'cheer', en: 'Department cheerleader', tl: 'Cheerleader ng department' },
+  { id: 'chief', en: 'Future chief resident', tl: 'Magiging chief resident' },
+  { id: 'travel', en: 'Most likely to travel the world', tl: 'Pinakamalamang maglibot sa mundo' },
+  { id: 'style', en: 'Best dressed on duty', tl: 'Pinakaporma sa duty' },
+  { id: 'hug', en: 'Gives the best advice', tl: 'Pinakamagaling magbigay ng payo' }
+];
+
+window.QOTW = [
+  { en: 'What song is stuck in your head this week?', tl: 'Anong kanta ang paulit-ulit sa isip mo ngayong linggo?' },
+  { en: 'What was the best thing you ate this week?', tl: 'Ano ang pinakamasarap mong nakain ngayong linggo?' },
+  { en: 'What made you laugh this week?', tl: 'Ano ang nagpatawa sa iyo ngayong linggo?' },
+  { en: 'What are you looking forward to this weekend?', tl: 'Ano ang inaabangan mo ngayong weekend?' },
+  { en: 'One small win this week?', tl: 'Isang maliit na tagumpay ngayong linggo?' },
+  { en: 'What are you watching right now?', tl: 'Ano ang pinapanood mo ngayon?' },
+  { en: 'Best advice you got recently?', tl: 'Pinakamagandang payo na natanggap mo kamakailan?' },
+  { en: 'Where would you teleport to right now?', tl: 'Saan ka magte-teleport ngayon mismo?' },
+  { en: 'What is your go-to snack on duty?', tl: 'Ano ang paborito mong snack sa duty?' },
+  { en: 'What is one thing you are grateful for this week?', tl: 'Ano ang isang bagay na ipinagpapasalamat mo ngayong linggo?' },
+  { en: 'If this week were a movie, what would its title be?', tl: 'Kung pelikula ang linggong ito, ano ang pamagat?' },
+  { en: 'What hobby would you pick up if you had a free month?', tl: 'Anong hobby ang susubukan mo kung may isang buwan kang libre?' },
+  { en: 'Your comfort food this week?', tl: 'Ang comfort food mo ngayong linggo?' },
+  { en: 'Who in the department made your week better, and how?', tl: 'Sino sa department ang nagpaganda ng linggo mo, at paano?' },
+  { en: 'What is the last photo on your camera roll (no need to show it)?', tl: 'Ano ang huling litrato sa camera roll mo (hindi kailangang ipakita)?' },
+  { en: 'What is one thing you learned this week?', tl: 'Ano ang isang bagay na natutunan mo ngayong linggo?' },
+  { en: 'Which emoji sums up your week?', tl: 'Anong emoji ang buod ng linggo mo?' },
+  { en: 'Dream rest-day plan?', tl: 'Pangarap na plano sa rest day?' },
+  { en: 'What would you name a pet rock?', tl: 'Ano ang ipapangalan mo sa pet rock?' },
+  { en: 'What podcast, book or video would you recommend this week?', tl: 'Anong podcast, libro o video ang irerekomenda mo ngayong linggo?' },
+  { en: 'What childhood snack do you still crave?', tl: 'Anong snack noong bata ka pa ang hinahanap-hanap mo pa rin?' },
+  { en: 'What is your current phone wallpaper?', tl: 'Ano ang wallpaper ng phone mo ngayon?' },
+  { en: 'Where is your favourite place to study or think?', tl: 'Saan ang paborito mong lugar para mag-aral o mag-isip?' },
+  { en: 'What is one thing you want to do before the year ends?', tl: 'Ano ang isang bagay na gusto mong gawin bago matapos ang taon?' },
+  { en: 'What is your hidden talent nobody in the department knows yet?', tl: 'Ano ang tagong talento mo na hindi pa alam ng department?' },
+  { en: 'Best thing that happened on duty this week?', tl: 'Pinakamagandang nangyari sa duty ngayong linggo?' }
+];
