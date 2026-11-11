@@ -202,7 +202,9 @@
     'pt.dd.every': 'Every Thursday',
     'pt.dd.next': 'Next: {date}',
     'pt.dd.cal': 'Add every Thursday to my calendar',
-    'pt.dd.note': 'Weekly Didactics day for the MMWGH Psychiatry department.'
+    'pt.dd.note': 'Weekly Didactics day for the MMWGH Psychiatry department.',
+    'pt.ev.register': 'Register',
+    'pt.ev.now': 'Happening now'
   };
   var tl = {
     'nav.bring': 'Dalhin ang card ko mula sa Batch Tickler',
@@ -403,7 +405,9 @@
     'pt.dd.every': 'Tuwing Huwebes',
     'pt.dd.next': 'Susunod: {date}',
     'pt.dd.cal': 'Idagdag ang bawat Huwebes sa calendar ko',
-    'pt.dd.note': 'Lingguhang Didactics day ng MMWGH Psychiatry department.'
+    'pt.dd.note': 'Lingguhang Didactics day ng MMWGH Psychiatry department.',
+    'pt.ev.register': 'Mag-register',
+    'pt.ev.now': 'Nagaganap ngayon'
   };
   var S = window.STRINGS = window.STRINGS || { en: {}, tl: {} };
   Object.keys(en).forEach(function (k) { S.en[k] = en[k]; });

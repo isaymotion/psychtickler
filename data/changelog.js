@@ -4,6 +4,14 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.2.1', date: '2026-11-11', title: 'PPA 2027 conventions on Department events',
+    items: [
+      { type: 'content', text: 'Department events now shows Psychiatry Without Borders, the PRCP–PPA Congress 2027 (19–22 January 2027, Crowne Plaza Hotel Galleria), with a Register link and the Annual and Midyear attendee lists.', href: '#/events' },
+      { type: 'content', text: 'Reminder for residents listed for the Annual convention: pay and register by 30 November 2026 (early bird PHP 10,000). The hospital reimburses one registration a year once post-training documents are complete.', href: '#/events' },
+      { type: 'update', text: 'Events that run over several days show the full date range, stay under Upcoming until their last day, and add to your calendar as one multi-day event.' }
+    ]
+  },
+  {
     version: '1.2.0', date: '2026-11-11', title: 'Didactics day every Thursday',
     items: [
       { type: 'feature', text: 'Didactics day: every Thursday, Home shows a Didactics day reminder, and on Wednesdays a heads-up that it is tomorrow.', href: '#/' },

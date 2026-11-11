@@ -1932,11 +1932,23 @@
   function getEvents() {
     var list = storedEvents(), s = startDate();
     if (s && !list.some(function (e) { return e.id === 'residency-start'; })) list.push({ id: 'residency-start', title: t('bt.ev.firstDay'), date: s, time: '', place: HOSP.name || '', note: '', builtin: true });
+    deptEvents().forEach(function (e) { if (!list.some(function (x) { return x.id === e.id; })) list.push(e); });
     return list.sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
   }
+  function deptEvents() {   // data/dept-events.js (PT 1.2.1): built in, read-only, never synced
+    var iso = /^\d{4}-\d{2}-\d{2}$/;
+    return (Array.isArray(window.DEPT_EVENTS) ? window.DEPT_EVENTS : []).filter(function (e) { return e && e.id && e.title && iso.test(e.date); }).map(function (e) {
+      return { id: String(e.id), title: String(e.title), date: e.date, end: iso.test(e.end || '') && e.end > e.date ? e.end : '', time: /^\d{2}:\d{2}$/.test(e.time || '') ? e.time : '', place: String(e.place || ''), note: String(e.note || ''),
+        url: /^https:\/\//.test(e.url || '') ? e.url : '', lists: (Array.isArray(e.lists) ? e.lists : []).filter(function (l) { return l && l.title && Array.isArray(l.names) && l.names.length; }), builtin: true, dept: true };
+    });
+  }
+  function evLeft(e, today) { return e.end ? evDays({ date: e.end }, today) : evDays(e, today); }   // days until the LAST day
   function evDays(e, today) { var p = e.date.split('-'); return dayNum(new Date(+p[0], +p[1] - 1, +p[2])) - dayNum(today); }
-  function evWhen(e, today) { var d = evDays(e, today); return d === 0 ? t('bt.home.today') : d === 1 ? t('bt.ev.tomorrow') : d > 1 ? tf('bt.home.inDaysN', { n: d }) : d === -1 ? t('bt.ev.yesterday') : tf('bt.ev.ago', { n: -d }); }
-  function evDate(e) { var p = e.date.split('-'), dt = new Date(+p[0], +p[1] - 1, +p[2]); return dt.toLocaleDateString(locale(), { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }) + (e.time ? ' · ' + e.time : ''); }
+  function evWhen(e, today) { var d = evDays(e, today); if (d < 0 && e.end && evLeft(e, today) >= 0) return t('pt.ev.now'); return d === 0 ? t('bt.home.today') : d === 1 ? t('bt.ev.tomorrow') : d > 1 ? tf('bt.home.inDaysN', { n: d }) : d === -1 ? t('bt.ev.yesterday') : tf('bt.ev.ago', { n: -d }); }
+  function evDate(e) {
+    function f(iso) { var p = iso.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(locale(), { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }); }
+    return f(e.date) + (e.end ? ' – ' + f(e.end) : '') + (e.time ? ' · ' + e.time : '');
+  }
   function mergeEvents(incoming) {
     var list = storedEvents(), n = 0;
     (Array.isArray(incoming) ? incoming : []).map(cleanEvent).filter(Boolean).forEach(function (e) {
@@ -1947,7 +1959,7 @@
     store.set('events', list); return n;
   }
   function nextEventStat(today) {
-    var up = getEvents().filter(function (e) { return evDays(e, today) >= 0; })[0]; if (!up) return '';
+    var up = getEvents().filter(function (e) { return evLeft(e, today) >= 0; })[0]; if (!up) return '';
     return '<a class="card stat stat--link" href="#/events">' + icon('calendar', 'stat__ico') + '<span class="stat__t">' + esc(t('bt.ev.next')) + '</span><span class="stat__name">' + esc(up.title) + '</span><span class="stat__sub">' + esc(evWhen(up, today)) + '</span></a>';
   }
   function icsEvents(list) {
@@ -1956,10 +1968,11 @@
     list.forEach(function (e) {
       var d = e.date.replace(/-/g, ''), start, end;
       if (e.time) { start = 'DTSTART:' + d + 'T' + e.time.replace(':', '') + '00'; var hh = (+e.time.slice(0, 2) + 2), dd = d; if (hh > 23) { hh = 23; } end = 'DTEND:' + dd + 'T' + ('0' + hh).slice(-2) + e.time.slice(3) + '00'; }
-      else { start = 'DTSTART;VALUE=DATE:' + d; var p = e.date.split('-'), nx = new Date(+p[0], +p[1] - 1, +p[2] + 1); end = 'DTEND;VALUE=DATE:' + icsDate(nx.getFullYear(), nx.getMonth() + 1, nx.getDate()); }
+      else { start = 'DTSTART;VALUE=DATE:' + d; var p = (e.end || e.date).split('-'), nx = new Date(+p[0], +p[1] - 1, +p[2] + 1); end = 'DTEND;VALUE=DATE:' + icsDate(nx.getFullYear(), nx.getMonth() + 1, nx.getDate()); }
       lines.push('BEGIN:VEVENT', 'UID:' + e.id + '-ev@isaymotion.github.io', 'DTSTAMP:' + stamp, start, end, 'SUMMARY:' + icsEscape(e.title));
       if (e.place) lines.push('LOCATION:' + icsEscape(e.place));
-      if (e.note) lines.push('DESCRIPTION:' + icsEscape(e.note));
+      if (e.note || e.url) lines.push('DESCRIPTION:' + icsEscape(e.note + (e.url ? (e.note ? '\n' : '') + e.url : '')));
+      if (e.url) lines.push('URL:' + e.url);
       lines.push('END:VEVENT');
     });
     lines.push('END:VCALENDAR'); return lines.join('\r\n') + '\r\n';
@@ -1982,10 +1995,11 @@
       '<p class="guess__acts"><button type="submit" class="btn btn--solid">' + esc(t('bt.ev.save')) + '</button>' + (evEdit ? '<button type="button" class="btn" id="ev-cancel">' + esc(t('bt.ev.cancel')) + '</button>' : '') + '</p><p class="form__status" id="ev-status" role="status"></p></form>';
   }
   VIEWS.events = function () {
-    var today = new Date(), all = getEvents(), up = all.filter(function (e) { return evDays(e, today) >= 0; }), past = all.filter(function (e) { return evDays(e, today) < 0; }).reverse();
+    var today = new Date(), all = getEvents(), up = all.filter(function (e) { return evLeft(e, today) >= 0; }), past = all.filter(function (e) { return evLeft(e, today) < 0; }).reverse();
     function row(e) {
       return '<li class="ev"><div class="ev__when"><span class="ev__d">' + esc(evWhen(e, today)) + '</span></div><div class="ev__body"><strong>' + esc(e.title) + '</strong><span class="muted">' + esc(evDate(e)) + (e.place ? ' · ' + esc(e.place) : '') + '</span>' + (e.note ? '<span class="ev__note">' + esc(e.note) + '</span>' : '') +
-        '<span class="ev__acts"><button type="button" class="link-btn" data-evcal="' + esc(e.id) + '">' + esc(t('bt.cal.one')) + '</button>' + (e.builtin ? '' : '<button type="button" class="link-btn" data-evedit="' + esc(e.id) + '">' + esc(t('bt.ev.editBtn')) + '</button><button type="button" class="link-btn" data-evdel="' + esc(e.id) + '">' + esc(t('bt.custom.remove')) + '</button>') + '</span></div></li>';
+        (e.lists || []).map(function (l) { return '<details class="ev__list"><summary>' + esc(l.title) + ' <span class="muted">(' + l.names.length + ')</span></summary><ol>' + l.names.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ol></details>'; }).join('') +
+        '<span class="ev__acts">' + (e.url ? '<a class="link-btn" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(t('pt.ev.register')) + '</a>' : '') + '<button type="button" class="link-btn" data-evcal="' + esc(e.id) + '">' + esc(t('bt.cal.one')) + '</button>' + (e.builtin ? '' : '<button type="button" class="link-btn" data-evedit="' + esc(e.id) + '">' + esc(t('bt.ev.editBtn')) + '</button><button type="button" class="link-btn" data-evdel="' + esc(e.id) + '">' + esc(t('bt.custom.remove')) + '</button>') + '</span></div></li>';
     }
     var editing = evEdit ? storedEvents().filter(function (e) { return e.id === evEdit; })[0] : null; if (evEdit && !editing) evEdit = '';
     return '<div class="wrap page events">' + crumb(t('nav.events')) + '<header class="page__head"><h1>' + esc(t('nav.events')) + '</h1><p>' + esc(t('bt.ev.intro')) + '</p></header>' +
@@ -2007,7 +2021,7 @@
     main.querySelectorAll('[data-evedit]').forEach(function (b) { b.addEventListener('click', function () { evEdit = b.getAttribute('data-evedit'); route({ keepScroll: true }); var t1 = document.querySelector('#ev-form [name=title]'); if (t1) { t1.focus(); t1.scrollIntoView({ block: 'center' }); } }); });
     main.querySelectorAll('[data-evdel]').forEach(function (b) { b.addEventListener('click', function () { var id = b.getAttribute('data-evdel'), e = storedEvents().filter(function (x) { return x.id === id; })[0]; if (!e || !window.confirm(tf('bt.ev.confirmDel', { title: e.title }))) return; store.set('events', storedEvents().filter(function (x) { return x.id !== id; })); cloudEvDel(e); route({ keepScroll: true }); }); });
     main.querySelectorAll('[data-evcal]').forEach(function (b) { b.addEventListener('click', function () { var e = getEvents().filter(function (x) { return x.id === b.getAttribute('data-evcal'); })[0]; if (e) icsEventsOut([e], 'event-' + slug(e.title) + '.ics', function (m) { cst.textContent = m; }); }); });
-    var all = document.getElementById('ev-all'); if (all) all.addEventListener('click', function () { var today = new Date(); icsEventsOut(getEvents().filter(function (e) { return evDays(e, today) >= 0; }), 'batch-events.ics', function (m) { cst.textContent = m; }); });
+    var all = document.getElementById('ev-all'); if (all) all.addEventListener('click', function () { var today = new Date(); icsEventsOut(getEvents().filter(function (e) { return evLeft(e, today) >= 0; }), 'batch-events.ics', function (m) { cst.textContent = m; }); });
   };
 
   /* ---- Kris Kringle draw (was Monito-monita) ---- */
