@@ -95,7 +95,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | Doc Andrei and Doc Vince made admins | After they join |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
-| 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. `pt.ev.now` Tagalog set by her in 1.2.2 ("Ginaganap ngayon"); `pt.ev.register` still a draft |
+| 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. `pt.ev.now` Tagalog set by her in 1.2.2 ("Ginaganap ngayon"); `pt.ev.register` ("Mag-register") approved by her |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
@@ -103,7 +103,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
 3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill). The message should include the backup-file steps for bringing a Batch Tickler card.
-4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent) and `pt.ev.register` from 1.2.1.
+4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent) (the 1.2.1 `pt.ev.*` strings are approved).
 5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
 6. Later: DutySched publishing, then "on duty today".
 
