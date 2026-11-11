@@ -4,6 +4,17 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.1.0', date: '2026-11-11', title: 'My card is easier to find, and a cleaner look',
+    items: [
+      { type: 'feature', text: 'My card now has its own button in the middle of the bottom bar (it shows your photo) and a "Your card" box near the top of Home, right under the chat. In the menu, Chat and My card come first, right after Home.', href: '#/me' },
+      { type: 'feature', text: 'On your own page, every section has an Edit button that opens just that part of your card. Sections you have not filled in yet are listed at the bottom; tap one to add it.' },
+      { type: 'feature', text: 'My card: tap a section name at the top to jump to it, or tap "Next empty question" to go straight to what is still blank. The Save button stays on screen while you scroll.', href: '#/me' },
+      { type: 'update', text: 'A cleaner look, the same as Batch Tickler: on phones the top bar is one slim row (tap the magnifying glass to search), the picture on Home is shorter with no text over the faces, cards are tighter, labels are no longer in ALL CAPS, and each person\'s photo sits beside their name.' },
+      { type: 'update', text: 'Bottom bar is now Home, Chat, My card, Emergency, Menu. About moved to the menu and the bottom of every page.' },
+      { type: 'correction', text: 'Names inside sentences (twins, shoutouts, the map list) are plain links again.' }
+    ]
+  },
+  {
     version: '1.0.0', date: '2026-11-11', title: 'Psych Tickler: the whole department',
     items: [
       { type: 'feature', text: 'Psych Tickler: one directory for the whole MMWGH Psychiatry department, all residents and consultants. It is built on Batch Tickler and keeps its games, birthdays, chat and printing.' },

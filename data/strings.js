@@ -140,6 +140,17 @@ window.STRINGS = {
     'bt.batch.you': 'You',
     'bt.person.notFound': 'That card is not on this device.',
     'bt.person.edit': 'Edit my card',
+    'bt.nv.homeH': 'Your card',
+    'bt.nv.homeNone': 'You don’t have a card yet',
+    'bt.nv.homeNoneT': 'Make your card so the department can get to know you. It takes a minute to start.',
+    'bt.nv.make': 'Make my card',
+    'bt.nv.secEdit': 'Edit',
+    'bt.nv.secEditA': 'Edit {section}',
+    'bt.nv.emptyH': 'Not filled in yet',
+    'bt.nv.emptyT': 'Tap a section to add it to your card.',
+    'bt.nv.jump': 'Jump to a section',
+    'bt.nv.nextEmpty': 'Next empty question',
+    'bt.nv.allDone': 'Every question has an answer.',
     'bt.person.remove': 'Remove this card',
     'bt.person.confirmRemove': 'Remove {name} from this device? Their card comes back at the next sync.',
     'bt.person.updated': 'Card updated {date}',
@@ -1328,6 +1339,17 @@ window.STRINGS = {
     'bt.batch.you': 'Ikaw',
     'bt.person.notFound': 'Wala ang card na iyan sa device na ito.',
     'bt.person.edit': 'I-edit ang card ko',
+    'bt.nv.homeH': 'Card mo',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.homeNone': 'Wala ka pang card',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.homeNoneT': 'Gawin ang card mo para makilala ka ng department. Isang minuto lang para makapagsimula.',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.make': 'Gawin ang card ko',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.secEdit': 'I-edit',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.secEditA': 'I-edit ang {section}',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.emptyH': 'Hindi pa napupunan',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.emptyT': 'I-tap ang isang seksyon para idagdag ito sa card mo.',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.jump': 'Pumunta sa isang seksyon',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.nextEmpty': 'Susunod na tanong na walang sagot',   // Tagalog draft — Dr. Navarro reviews before release
+    'bt.nv.allDone': 'May sagot na ang lahat ng tanong.',   // Tagalog draft — Dr. Navarro reviews before release
     'bt.person.remove': 'Alisin ang card na ito',
     'bt.person.confirmRemove': 'Alisin si {name} sa device na ito? Babalik ang card niya sa susunod na sync.',
     'bt.person.updated': 'Na-update ang card noong {date}',

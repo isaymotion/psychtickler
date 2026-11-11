@@ -118,13 +118,13 @@
   </div>
 </div>
 
-<!-- Mobile bottom tab bar (shown <=1099px): Home, Emergency, Menu (opens the drawer), Chat (1.21.0; What's new moved to the menu), About -->
+<!-- Mobile bottom tab bar (shown <=1099px). 1.23.0: Home, Chat, My card (shows your photo), Emergency, Menu (opens the drawer). About is in the menu and the footer. -->
 <nav class="tabbar" aria-label="Quick navigation" data-i18n-attr="aria-label:nav.quick">
   <a href="#/" data-tab="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span data-i18n="nav.home">Home</span></a>
+  <a href="#/chat" data-tab="chat"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-5 4z"/><path d="M8 10.5h8"/></svg><span data-i18n="nav.chatShort">Chat</span><span class="badge" data-badge="chat" hidden></span></a>
+  <a href="#/me" data-tab="me" class="tab-me"><span class="tab-me__pic" aria-hidden="true"><svg class="tab-me__ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M15 10h3M15 13.5h3"/></svg></span><span data-i18n="nav.me">My card</span></a>
   <a href="#/emergency" data-tab="emergency" class="tab-em"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M12 8v8M8 12h8"/></svg><span data-i18n="nav.emergencyShort">Emergency</span></a>
   <button type="button" id="tab-menu" data-tab="menu" aria-controls="sidenav" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span data-i18n="menu.title">Menu</span></button>
-  <a href="#/chat" data-tab="chat"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-5 4z"/><path d="M8 10.5h8"/></svg><span data-i18n="nav.chatShort">Chat</span><span class="badge" data-badge="chat" hidden></span></a>
-  <a href="#/about" data-tab="about"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg><span data-i18n="nav.about">About</span></a>
 </nav>
 
 <script src="data/app-meta.js"></script>

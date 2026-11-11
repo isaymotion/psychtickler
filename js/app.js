@@ -88,6 +88,7 @@
   /* ===== Icons (inline SVG, 24x24, stroke = currentColor). NAV items refer to these by key. ===== */
   var ICONS = {
     home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/>',
     news: '<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
     star: '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>',
@@ -4311,6 +4312,128 @@
     };
   })();
 
+  /* ===================== 1.23.0: EASIER TO FIND + EDIT MY CARD =====================
+     Tab bar: Home, Chat, My card, Emergency, Menu (About lives in the menu and the footer). The My card tab shows your photo.
+     Menu: Home, Chat, My card. Home: Department chat card first, then the "Your card" strip. Your own person page: an Edit link on every
+     section (#/me/<group> opens My card with only that section open) + chips for the sections still empty.
+     My card: jump chips with counts, "Next empty question", Save bar stays in view. Helpers are prefixed nv. */
+  (function () {
+    ['#/me', '#/chat'].forEach(function (h) {   // menu order: Home, Chat, My card
+      for (var i = 0; i < NAV.length; i++) if (NAV[i].href === h) { var n = NAV.splice(i, 1)[0]; n.group = 'Start'; NAV.splice(1, 0, n); break; }
+    });
+  })();
+  function nvTabPaint() {
+    var tab = document.querySelector('.tabbar [data-tab="me"]'); if (!tab) return;
+    var me = getMe(), p = parts(), on = p[0] === 'me' || (p[0] === 'person' && me && p[1] === me.id);
+    tab.classList.toggle('is-active', !!on); if (on) tab.setAttribute('aria-current', 'page'); else tab.removeAttribute('aria-current');
+    var slot = tab.querySelector('.tab-me__pic'), src = me && me.photo ? me.photo : '';
+    if (slot && slot.getAttribute('data-src') !== src) { slot.setAttribute('data-src', src); slot.innerHTML = src ? '<img src="' + esc(src) + '" alt="">' : icon('card', 'tab-me__ico'); }
+    tab.classList.toggle('tab-me--todo', !me);
+  }
+  var updateNavBadges1 = updateNavBadges;
+  updateNavBadges = function () { updateNavBadges1(); nvTabPaint(); };
+  function nvSections() {   // [{id, label}] every collapsible section of My card, in form order
+    var nvPos = (getMe() || {}).pos || 'resident';   // Psych Tickler: the consultant section exists only for consultants
+    var out = GROUPS.filter(function (g) { return g !== 'consultant' || nvPos === 'consultant'; }).map(function (g) { return { id: g, label: groupLabel(g) }; });
+    out.push({ id: 'playlists', label: t('bt.f.playlists') });
+    LISTS.forEach(function (L) { out.push({ id: 'list-' + L.key, label: listLabel(L.key) }); });
+    out.push({ id: 'custom', label: t('bt.custom.title') });
+    return out;
+  }
+  function nvHomeStrip() {
+    var me = getMe();
+    if (!me) return '<section class="card nv-me nv-me--none"><div class="nv-me__t"><strong>' + esc(t('bt.nv.homeNone')) + '</strong><span>' + esc(t('bt.nv.homeNoneT')) + '</span></div><p class="nv-me__acts"><a class="btn btn--solid" href="#/me">' + esc(t('bt.nv.make')) + '</a></p></section>';
+    var comp = completeness(me), pct = Math.round(100 * comp.n / comp.total);
+    return '<section class="card nv-me"><a class="nv-me__who" href="#/person/' + encodeURIComponent(me.id) + '">' + avatar(me, 'avatar--sm') + '<span class="nv-me__t"><span class="nv-me__k">' + esc(t('bt.nv.homeH')) + '</span><strong>' + esc(me.name) + '</strong>' +
+      '<span class="meter__bar nv-me__bar"><span style="width:' + pct + '%"></span></span><span class="muted">' + esc(tf('bt.me.complete', comp)) + '</span></span></a>' +
+      '<p class="nv-me__acts"><a class="btn btn--solid" href="#/me">' + icon('edit', 'btn__ico') + esc(t('bt.person.edit')) + '</a></p></section>';
+  }
+  (function () {
+    var homeV = VIEWS.home;
+    VIEWS.home = function () {   // Department chat card stays first (members), then Your card
+      var html = homeV.apply(null, arguments), w = '<div class="wrap home">', chat = homeChatHTML();
+      if (chat && html.indexOf(w + chat) >= 0) return html.replace(w + chat, w + chat + nvHomeStrip());
+      return html.replace(w, w + nvHomeStrip());
+    };
+    var personV = VIEWS.person;
+    VIEWS.person = function (id) {
+      var html = personV.apply(null, arguments), c = findPerson(String(id || ''));
+      if (!c || !isMe(c)) return html;
+      function link(sec) { return ' <a class="nv-edit" href="#/me/' + sec.id + '" aria-label="' + esc(tf('bt.nv.secEditA', { section: sec.label })) + '">' + icon('edit', 'nv-edit__ico') + esc(t('bt.nv.secEdit')) + '</a>'; }
+      var empty = [];
+      nvSections().forEach(function (sec) {
+        var a = '<h2>' + esc(sec.label) + '</h2>', b = '<h2 id="' + sec.id + '">' + esc(sec.label) + '</h2>', done = false;
+        [a, b].forEach(function (h) { if (!done && html.indexOf(h) >= 0) { html = html.replace(h, h.replace('<h2', '<h2 class="nv-h"').replace('</h2>', link(sec) + '</h2>')); done = true; } });
+        if (!done) empty.push(sec);
+      });
+      if (empty.length) {
+        var box = '<section class="nv-empty"><h2>' + esc(t('bt.nv.emptyH')) + '</h2><p class="muted">' + esc(t('bt.nv.emptyT')) + '</p><p class="nv-chips">' + empty.map(function (sec) { return '<a class="nv-chip" href="#/me/' + sec.id + '">+ ' + esc(sec.label) + '</a>'; }).join('') + '</p></section>';
+        var at = html.lastIndexOf('<p class="person__foot'); html = at < 0 ? html + box : html.slice(0, at) + box + html.slice(at);
+      }
+      return html;
+    };
+    var meV = VIEWS.me, meA = AFTER.me;
+    VIEWS.me = function () {
+      var html = meV.apply(null, arguments);
+      var jump = '<nav class="nv-jump" aria-label="' + esc(t('bt.nv.jump')) + '"><p class="nv-jump__k">' + esc(t('bt.nv.jump')) + '</p><div class="nv-chips">' + [{ id: 'consultant', label: groupLabel('consultant'), pos: 1 }].filter(function () { return ((getMe() || {}).pos || 'resident') !== 'consultant'; }).concat(nvSections()).map(function (sec) { return '<button type="button" class="nv-chip" data-nvjump="' + sec.id + '"' + (sec.pos ? ' data-posgroup="consultant" hidden' : '') + '>' + esc(sec.label) + ' <span class="nv-chip__n" data-nvn="' + sec.id + '"></span></button>'; }).join('') + '</div>' +
+        '<p class="nv-jump__next"><button type="button" class="btn" id="nv-next">' + esc(t('bt.nv.nextEmpty')) + ' →</button> <span class="muted" id="nv-next-status" role="status" aria-live="polite"></span></p></nav>';
+      return html.replace('<details class="fgroup"', jump + '<details class="fgroup"').replace('<div class="form__acts">', '<div class="form__acts nv-save">');
+    };
+    function nvBox(form, id) { var n = form.querySelector('.fgroup__n[data-group="' + id + '"]'); return n ? n.closest('details') : null; }
+    function nvOpen(form, id, only, focus) {
+      var d = nvBox(form, id); if (!d) return;
+      if (only) form.querySelectorAll('details.fgroup').forEach(function (x) { x.open = x === d; });
+      d.open = true;
+      setTimeout(function () {
+        var top = document.querySelector('.topbar'), y = d.getBoundingClientRect().top + window.scrollY - (top ? top.offsetHeight : 0) - 10;
+        window.scrollTo(0, Math.max(0, y));
+        if (focus) { var f = d.querySelector('input,textarea,select'); if (f) f.focus({ preventScroll: true }); }
+      }, 60);
+    }
+    AFTER.me = function (arg) {
+      meA.apply(null, arguments);
+      var form = document.getElementById('me-form'); if (!form) return;
+      var clr = document.getElementById('me-clear'), bar = form.querySelector('.nv-save');
+      if (clr && bar) { var cp = document.createElement('p'); cp.className = 'nv-clear'; bar.parentNode.insertBefore(cp, bar); cp.appendChild(clr); }
+      function counts() { form.querySelectorAll('[data-nvn]').forEach(function (el) { var n = form.querySelector('.fgroup__n[data-group="' + el.getAttribute('data-nvn') + '"]'); el.textContent = n ? n.textContent : ''; }); }
+      counts();
+      form.addEventListener('input', function () { clearTimeout(form._nv); form._nv = setTimeout(counts, 320); });
+      form.addEventListener('click', function (e) {
+        var j = e.target.closest('[data-nvjump]');
+        if (j) { nvOpen(form, j.getAttribute('data-nvjump'), false, false); return; }
+        if (e.target.closest('.custom-rm, .nf-up, #custom-add, #pl-add, [data-ladd]')) setTimeout(counts, 50);
+      });
+      var next = document.getElementById('nv-next'), st = document.getElementById('nv-next-status');
+      if (next) next.addEventListener('click', function () {
+        var els = Array.prototype.filter.call(form.elements, function (el) { return el.name && has(FIELD_BY, el.name) && !el.value.trim() && !el.closest('[hidden]'); });   // form order: Quick card first
+        if (!els.length) { st.textContent = t('bt.nv.allDone'); return; }
+        var el = els[0], last = next._last;
+        if (last && last.isConnected) for (var k = 0; k < els.length; k++) if (last.compareDocumentPosition(els[k]) & 4) { el = els[k]; break; }
+        next._last = el; st.textContent = '';
+        var d = el.closest('details'); if (d) d.open = true;
+        setTimeout(function () {
+          var top = document.querySelector('.topbar'), y = el.closest('.field').getBoundingClientRect().top + window.scrollY - (top ? top.offsetHeight : 0) - 14;
+          window.scrollTo(0, Math.max(0, y)); el.focus({ preventScroll: true });
+        }, 60);
+      });
+      if (arg && arg !== 'emergency') nvOpen(form, String(arg), true, false);
+    };
+  })();
+
+  /* ===================== 1.24.0 LOOK REFRESH: search folds into a button on phones ===================== */
+  (function () {
+    var box = document.querySelector('.topbar .search'), q = document.getElementById('q'); if (!box || !q) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'icon-btn lk-search-btn'; b.id = 'lk-search-btn'; b.setAttribute('aria-expanded', 'false');
+    b.setAttribute('aria-label', t('search.label'));
+    b.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    box.parentNode.insertBefore(b, box);
+    function set(on) { document.body.classList.toggle('lk-search', on); b.setAttribute('aria-expanded', on ? 'true' : 'false'); if (on) q.focus(); }
+    b.addEventListener('click', function () { set(!document.body.classList.contains('lk-search')); });
+    q.addEventListener('blur', function () { setTimeout(function () { if (!q.value && document.activeElement !== q) set(false); }, 200); });
+    window.addEventListener('hashchange', function () { if (!q.value) set(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === '/' && !/input|textarea|select/i.test((document.activeElement || {}).tagName || '')) document.body.classList.add('lk-search'); }, true);
+  })();
+
   TITLES.person = function () { return t('nav.batch'); };
   rebuildIndex();
 
@@ -4502,7 +4625,7 @@
     NAV.splice.apply(NAV, [at, 0].concat(add));
   })();
   function seededRnd(seed) { var a = strHash(seed) || 1; return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var x = Math.imul(a ^ a >>> 15, 1 | a); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; }; }
-  function personLink(c) { return '<a class="who" href="#/person/' + encodeURIComponent(c.id) + '">' + avatar(c, 'avatar--sm') + '<span>' + esc(short(c)) + '</span></a>'; }
+  function ptWhoLink(c) { return '<a class="who" href="#/person/' + encodeURIComponent(c.id) + '">' + avatar(c, 'avatar--sm') + '<span>' + esc(short(c)) + '</span></a>'; }
 
   /* ---- Year-level cup: teams by position; a team's score is the average number of badges per member (so a small team
           is not at a disadvantage), with total badges as the tie-break ---- */
@@ -4567,7 +4690,7 @@
     var list = allKudos(), html = pageHead('kudos', 'nav.kudos', 'pt.kudos.intro'), ym = new Date().toISOString().slice(0, 7), n = {}, who = {};
     list.forEach(function (k) { if (k.to && String(k.date).slice(0, 7) === ym) { n[k.to.id] = (n[k.to.id] || 0) + 1; who[k.to.id] = k.to; } });
     var top = Object.keys(n).sort(function (a, b) { return n[b] - n[a] || byName(who[a], who[b]); }).slice(0, 3);
-    if (top.length) html += '<h2>' + esc(tf('pt.kudos.monthH', { month: monthName(new Date().getMonth() + 1) })) + '</h2><div class="card who-row who-row--top">' + top.map(function (id, i) { return '<span class="who-top">' + personLink(who[id]) + '<span class="muted">' + ['🥇', '🥈', '🥉'][i] + ' ' + n[id] + '</span></span>'; }).join('') + '</div>';
+    if (top.length) html += '<h2>' + esc(tf('pt.kudos.monthH', { month: monthName(new Date().getMonth() + 1) })) + '</h2><div class="card who-row who-row--top">' + top.map(function (id, i) { return '<span class="who-top">' + ptWhoLink(who[id]) + '<span class="muted">' + ['🥇', '🥈', '🥉'][i] + ' ' + n[id] + '</span></span>'; }).join('') + '</div>';
     html += '<h2>' + esc(t('pt.kudos.allH')) + '</h2>';
     html += list.length ? '<ul class="kudos">' + list.slice(0, 60).map(function (k) {
       return '<li class="card"><p class="kudos__t">' + esc(k.text) + '</p><p class="muted kudos__m">' + esc(tf('pt.kudos.line', { from: short(k.from), to: k.to ? short(k.to) : k.toName })) + (k.date ? ' · ' + esc(bkDate(k.date) || '') : '') + '</p></li>';
