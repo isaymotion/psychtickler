@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 12 November 2026 (after the invite messages), at version 1.2.3 (commit `504d43e` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events; 1.2.2 fixes the Tagalog for "Happening now" to "Ginaganap ngayon" (her wording); 1.2.3 adds the GAPP webinar (27 Nov 2026) to `data/dept-events.js`. Next: two-account test (section 7).
+Last updated 12 November 2026 (after 1.3.0), at version 1.3.0 (commit `4a70c05` on `main`). All tests (t1, t2, t3, t4, t5) and both checks pass. 1.3.0 adds event posters and programmes (built-in and member-added) and pins the built-in events in #announcements. **Waiting on her:** paste the updated `firestore.rules` into Firebase and Publish (new `posters` match); until then member poster uploads fail with a clear message and the event is still saved. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -44,10 +44,17 @@ Firestore, under `programs/{code}/`:
 - `partsRes/{cardId}` residents-only fields; `byBatch/{year}/parts/{cardId}` my-batch-only fields
 - `channels/{id}` with `aud` (`all` | `res` | `b2027`), `messages`, `reports`, `events`
 - `polls/{id}` and `polls/{id}/votes/{uid}`
+- `events/{id}` (title, date, time, place, note, `poster` = upload time or 0, `updated`, `by`, `deleted`); `posters/{eventId}` `{by, updated, data, w, h}` (1.3.0; data URL under 420,000 characters)
 
 `firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
 
 Department-wide events (1.2.1): `data/dept-events.js` sets `window.DEPT_EVENTS`; `deptEvents()` (events section of `js/app.js`) validates them and `getEvents()` adds them as `builtin` (read-only, never stored or synced). Optional fields: `end` (last day; `evLeft()` keeps a range under Upcoming until then, `evWhen()` says "Happening now", the .ics DTEND covers it), `url` (Register link, https only, also .ics `URL:`), `lists` (`[{title, names}]`, tap-to-open). The file is public on GitHub Pages; she chose to include the PPA attendee names. To add a department event: edit that file only, then bump the version.
+
+Event posters and programmes (1.3.0), section `PSYCH TICKLER 1.3.0: EVENT POSTERS AND PROGRAMMES` in `js/app.js` (just before Didactics day):
+- Built-in events take `poster` (a file in `img/events/`, about 1000 px wide, under 250 KB, also listed in `CORE` in `sw.js`), `moderator` and `program` (`[{time, title, by}]`). `evPosterHTML()`, `evProgHTML()`; any `.ev__poster` button opens `posterZoom()` (one click listener on `document`).
+- Member events: the form has a Poster field (`evPosterField()`, `bindPosterField()`; only when Cloud sync is joined). The picture is shrunk with `chatPhoto()` (cap `chatImgMax`), uploaded first with `api.putPoster`, then the event is saved with `poster` = upload time. Pictures are never in localStorage: `loadPosters()` fetches them when Department events opens and keeps them in memory (`posterCache`), so they need a connection. Remove poster or deleting the event calls `api.deletePoster` (rule: uploader or admin). Phones still on 1.2.3 drop the `poster` number if they edit that event.
+- `cloudSync({pushOnly})` now also sends new or edited events (before 1.3.0 they waited for the next full sync).
+- Chat: `chSort()` lists `announcements` first with a "Pinned" badge; `annPinsHTML()` puts a closed "Department events" box at the top of #announcements with up to 4 upcoming built-in events (poster, programme, Register).
 
 Didactics day (1.2.0) is phone-only (no cloud data), in the section just before `PSYCH TICKLER 1.0.0: FUN`; it wraps `VIEWS.home`, `VIEWS.events` and `AFTER.events`.
 
@@ -75,11 +82,12 @@ python3 ../pt-tools/tools/t1.py         # bring card, edit, save, open every scr
 python3 ../pt-tools/tools/t2.py         # four phones on a mock cloud
 python3 ../pt-tools/tools/t3.py         # bring from a backup file (1.1.2), wrong files, nothing leaks
 python3 ../pt-tools/tools/t4.py         # built-in department events (1.2.1, GAPP 1.2.3): range, Register, lists, timed .ics
+python3 ../pt-tools/tools/t5.py         # posters and programmes (1.3.0): GAPP poster, upload on the mock cloud, #announcements pins
 python3 <isaymotion-app-design>/scripts/check_sw.py .
 python3 <isaymotion-app-design>/scripts/check_design.py . --browser   # then delete _qa/
 ```
 
-Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 10 `ok` lines and `no errors` (update it when the PPA or GAPP entries are removed). Both checks print PASS.
+Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 10 `ok` lines and `no errors` (update it when the PPA or GAPP entries are removed). `t5` prints 22 `ok` lines and `no errors` (it needs Pillow; update it when the GAPP entry is removed: it expects 3 built-in events pinned). Both checks print PASS. If a test cannot connect, the http.server has stopped: start it again from the main checkout.
 
 ## 6. Status
 
@@ -99,16 +107,17 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
 | 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. `pt.ev.now` Tagalog set by her in 1.2.2 ("Ginaganap ngayon"); `pt.ev.register` ("Mag-register") approved by her |
 | 1.2.3 GAPP webinar | Done 12 Nov 2026, pushed (`504d43e`): id `gapp-2026-webinar`, "Drug Prevention and Control: A Time for All to Come Together to Champion for Health" (GAPP with PPA and Otsuka), Fri 27 Nov 2026 19:00, Zoom, free, Register https://bit.ly/GAPP2026Webinar. t4 now checks it (Register link, Tomorrow on 26 Nov, .ics `DTSTART:20261127T190000`) and accepts "Ginaganap ngayon" |
+| 1.3.0 Event posters and programmes | Done 12 Nov 2026, pushed (`4a70c05`): GAPP poster (`img/events/gapp-2026-webinar.jpg`, 168 KB) and programme; member poster upload; #announcements first and pinning built-in events. Rules file copied to `isaymotion/tickler` (`4a29420`). **Rules NOT yet published in Firebase by her**, so the live upload is untested. 20 new Tagalog drafts (`pt.ev.poster*`, `pt.ev.program`, `pt.ev.moderator`, `pt.ev.uploading`, `pt.ann.*`) by a Sonnet subagent, for her review. She chose this over a separate forum |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
 
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
-2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
+2. She pastes `firestore.rules` into Firebase console › Firestore › Rules and Publishes (needed for member posters). Then the two-account test (one resident, one consultant) on the live space, including attaching a poster to an event and seeing it on the other account; fix any `permission-denied`.
 3. Make Doc Andrei and Doc Vince admins after they join. Act on suggestions from the pilot group (Doc IC, Doc Andrei, Doc Vince), then write the department-wide install/join group message (app-install-message skill), including the backup-file steps for bringing a Batch Tickler card. Ask whether to hide the Year-level cup.
 4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent). Already approved by her: `pt.ev.now` "Ginaganap ngayon" and `pt.ev.register` "Mag-register" (hyphen confirmed).
 5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
-6. After 27 Nov 2026, remove the GAPP webinar from `data/dept-events.js` when it is long past (and drop its t4 checks).
+6. After 27 Nov 2026, remove the GAPP webinar from `data/dept-events.js` when it is long past: also delete `img/events/gapp-2026-webinar.jpg`, take it out of `CORE` in `sw.js`, and adjust t4 and t5.
 7. Later: DutySched publishing, then "on duty today".
 
 ## 8. Pitfalls learned
@@ -129,6 +138,9 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 - Built-in events are always present, so the Planner badge can pop on first visit to Department events (already true with "First day of residency"); harmless.
 - Push access: if `git push` returns 403 from the git proxy, attach the repo to the session with push access first.
 - `BK_APP` is declared with `var` further down `js/app.js` than the bring section; it is only read inside handlers at run time, so that is fine.
+
+- `AFTER.events` has a local variable named `cst` (the calendar status line), which hides the `cst()` cloud-state function there; use `evCode()` for the join code inside it.
+- A poster is a separate cloud document on purpose: events are copied into every phone's localStorage, and pictures there would fill the 5 MB quota.
 
 ## 9. Files to re-attach
 

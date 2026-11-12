@@ -11,7 +11,7 @@ with sync_playwright() as p:
     ok('ppa-prcp-2027' in ids and 'ppa-2027-reg-deadline' in ids, 'dept events listed')
     ok(not pg.query_selector('[data-evedit="ppa-prcp-2027"], [data-evdel="ppa-prcp-2027"]'), 'dept events read-only')
     ok(any(a.get_attribute('href') == 'https://ppaprcpcongress2027.org/' for a in pg.query_selector_all('.ev__acts a')), 'Register link')
-    ok(len(pg.query_selector_all('.ev__list')) == 3, 'three name lists')
+    ok(len(pg.query_selector_all('.ev__list:not(.ev__prog)')) == 3, 'three name lists')
     ok('gapp-2026-webinar' in ids and any(a.get_attribute('href') == 'https://bit.ly/GAPP2026Webinar' for a in pg.query_selector_all('.ev__acts a')), 'GAPP webinar listed with Register link (1.2.3)')
     pg.close()
     pg = b.new_context().new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))

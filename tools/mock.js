@@ -34,7 +34,12 @@
         if(canRes && m.role!=='consultant') Object.keys(d.res||{}).forEach(function(k){ if(d.res[k].updated>since) out.push(Object.assign({id:k,aud:'res'},d.res[k])); });
         if(year && m.batch===year) Object.keys((d.byb||{})[year]||{}).forEach(function(k){ var x=d.byb[year][k]; if(x.updated>since) out.push(Object.assign({id:k,aud:'batch'},x)); });
         return P(out); },
-      putEvent: function(){ return P(); }, eventsSince: function(){ return P([]); },
+      putEvent: function(code,ev){ var d=db(); d.ev=d.ev||{}; var x={title:ev.title||'',date:ev.date||'',time:ev.time||'',place:ev.place||'',note:ev.note||'',poster:+ev.poster||0,updated:Date.parse(ev.updated)||Date.now(),by:U.uid}; if(ev.deleted) x.deleted=true; d.ev[ev.id]=x; save(d); return P(); },
+      eventsSince: function(code,since){ var d=db(); return P(Object.keys(d.ev||{}).filter(function(k){ return d.ev[k].updated>since; }).map(function(k){ return Object.assign({id:k},d.ev[k]); })); },
+      // 1.3.0 posters; MOCKFAIL=posters makes uploads fail the way unpublished rules would
+      putPoster: function(code,id,im){ if(localStorage.getItem('MOCKFAIL')==='posters') return Promise.reject({code:'permission-denied',message:'Missing or insufficient permissions.'}); var d=db(); d.posters=d.posters||{}; d.posters[id]={by:U.uid,updated:Date.now(),data:im.data,w:im.w,h:im.h}; save(d); return P(); },
+      getPoster: function(code,id){ var d=db(); window.MOCKLOG.push(['getPoster',id]); return P((d.posters||{})[id]||null); },
+      deletePoster: function(code,id){ var d=db(); if(d.posters) delete d.posters[id]; save(d); return P(); },
       chatChannels: function(code,auds){ var d=db(); window.MOCKLOG.push(['auds',auds]); return P((d.ch||[]).filter(function(c){ return auds.indexOf(c.aud)>=0; })); },
       chatCreateChannels: function(code,list){ var d=db(); d.ch=(d.ch||[]).concat(list.map(function(c){ return Object.assign({by:U.uid,created:1,last:0,lastName:''},c); })); save(d); return P(); },
       chatChannelExists: function(){ return P(false); }, chatReports: function(){ return P([]); }, chatListen: function(){ return function(){}; }, chatOldPhotos: function(){ return P([]); },
