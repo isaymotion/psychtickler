@@ -4,6 +4,15 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.4.0', date: '2026-11-12', title: 'Didactics schedule',
+    items: [
+      { type: 'feature', text: 'Didactics schedule: Department events now lists the next 8 Thursdays with the topic, presenter and moderator for each. It needs Cloud sync.', href: '#/events' },
+      { type: 'feature', text: 'Didactics schedule for admins: Add or Edit beside a Thursday sets the topic, presenter, moderator and a short note for everyone in the department.', href: '#/events' },
+      { type: 'update', text: 'Didactics day: the Home card on Wednesdays and Thursdays shows that week\'s topic and presenter.', href: '#/home' },
+      { type: 'correction', text: 'Department events: the page no longer scrolls sideways on phones that joined Cloud sync.', href: '#/events' }
+    ]
+  },
+  {
     version: '1.3.3', date: '2026-11-12', title: 'Tagalog wording',
     items: [
       { type: 'correction', text: 'Tagalog: My card asks for "Taon na nagsimula ka ng residency".', href: '#/me' }

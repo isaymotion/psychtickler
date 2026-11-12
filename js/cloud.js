@@ -136,6 +136,12 @@
         return F.getDocs(F.query(col(ROOT, code, 'events'), F.where('updated', '>', since))).then(function (s) { return rows(s).map(function (x) { x.id = x._id; delete x._id; return x; }); });
       },
 
+      // 1.4.0 didactics schedule: one row per Thursday (id = the date). Admins write (rules), members read.
+      putDidactic: function (code, day, x) { return F.setDoc(d(ROOT, code, 'didactics', day), { topic: x.topic || '', presenter: x.presenter || '', moderator: x.moderator || '', note: x.note || '', updated: +x.updated || Date.now(), by: me().uid }); },
+      didacticsSince: function (code, since) {
+        return F.getDocs(F.query(col(ROOT, code, 'didactics'), F.where('updated', '>', since))).then(function (s) { return rows(s).map(function (x) { x.id = x._id; delete x._id; return x; }); });
+      },
+
       /* ---- chat: programs/{code}/channels/{id} + …/messages/{mid}; reports in programs/{code}/reports ---- */
       chatChannels: function (code, auds) {   // one query per audience I may read: the rules check the audience, so an unfiltered list would be refused
         return Promise.all((auds || ['all']).map(function (a) {

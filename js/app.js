@@ -2971,7 +2971,8 @@
         var info = full || opts.force ? api.getBatch(c.code).then(function (b) { if (b) cset(function (x) { x.name = b.name || x.name; x.tmdbKey = okTmdbKey(b.tmdbKey); }); }).catch(function () {}) : Promise.resolve();
         return info.then(function () { return pullCards(api, cst(), full); })
           .then(function (r) { return pullParts(api, cst(), full || opts.force).then(function (n) { if (n) r.updated += n; return r; }); })
-          .then(function (r) { return syncEvents(api, cst()).then(function (n) { r.events = n; return r; }); });
+          .then(function (r) { return syncEvents(api, cst()).then(function (n) { r.events = n; return r; }); })
+          .then(function (r) { return syncDD(api, cst(), full || !!opts.force).then(function (n) { r.events = (r.events || 0) + n; return r; }); });
       });
     }).then(function (r) {
       cloudBusy = false; again();
@@ -3223,7 +3224,7 @@
     on('sy-leave', function (b) {
       if (!window.confirm(t('bt.sync.confirmLeave'))) return;
       busy(b, true);
-      api.leave(c.code).then(function () { cset(function (x) { ['code', 'name', 'state', 'pushKey', 'lastPull', 'lastFull', 'syncIds', 'evPush', 'evPull', 'evDel', 'lastSync', 'lastErr', 'role', 'batch', 'admin', 'partYear', 'partPull'].forEach(function (k) { delete x[k]; }); }); store.del('parts'); store.del('roles'); store.del('owners'); syncAdmin = null; toast(t('bt.sync.left')); route({ keepScroll: true }); })
+      api.leave(c.code).then(function () { cset(function (x) { ['code', 'name', 'state', 'pushKey', 'lastPull', 'lastFull', 'syncIds', 'evPush', 'evPull', 'evDel', 'lastSync', 'lastErr', 'role', 'batch', 'admin', 'partYear', 'partPull', 'ddPull'].forEach(function (k) { delete x[k]; }); }); store.del('dd'); store.del('parts'); store.del('roles'); store.del('owners'); syncAdmin = null; toast(t('bt.sync.left')); route({ keepScroll: true }); })
         .catch(function (e) { busy(b, false); say(errText(e), true); });
     });
     if (u && u.admin && c.state === 'member' && c.code) {
@@ -4771,7 +4772,8 @@
   function ddHome(today) {
     var dow = today.getDay(), k = dow === DD_DOW ? 'today' : dow === (DD_DOW + 6) % 7 ? 'tomorrow' : '';
     if (!k) return '';
-    return '<section class="callout dd-home" aria-live="polite"><p class="callout__title">' + icon('school', 'dd-ico') + ' ' + esc(t('pt.dd.' + k + 'H')) + '</p><p>' + esc(t('pt.dd.' + k)) + ' <a href="#/events">' + esc(t('nav.events')) + '</a></p></section>';
+    var x = ddGet(ddIso(ddNext(today)));
+    return '<section class="callout dd-home" aria-live="polite"><p class="callout__title">' + icon('school', 'dd-ico') + ' ' + esc(t('pt.dd.' + k + 'H')) + '</p>' + (x ? '<p class="dd-line">' + ddLine(x) + '</p>' : '') + '<p>' + esc(t('pt.dd.' + k)) + ' <a href="#/events">' + esc(t('nav.events')) + '</a></p></section>';
   }
   function ddIcs() {
     var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z'), n = ddNext(new Date()), nx = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
@@ -4787,6 +4789,82 @@
     var url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), a = document.createElement('a'); a.href = url; a.download = name; a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); cb(tf('bt.cal.saved', { name: name }));
   }
+  /* ---- PSYCH TICKLER 1.4.0: DIDACTICS SCHEDULE ----
+     What each Thursday holds: topic, presenter, moderator and a short note. Admins write it (Department events ›
+     Didactics day › Schedule), everyone in the department reads it. Cloud: programs/{code}/didactics/{YYYY-MM-DD}
+     {topic, presenter, moderator, note, updated, by}; a cleared week stays as an empty row so other phones learn of it.
+     Phone: store `dd` (date -> row, text only), filled by syncDD() so it also shows offline. No patient details. */
+  var DD_WEEKS = 8, DD_KEEP_DAYS = 60, ddEdit = '', ddOpen = false, ddBusy = false;
+  function ddAll() { var d = store.get('dd', null); return d && typeof d === 'object' && !Array.isArray(d) ? d : {}; }
+  function ddClean(x) {
+    function s(v, n) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n); }
+    x = x && typeof x === 'object' ? x : {};
+    return { topic: s(x.topic, 160), presenter: s(x.presenter, 120), moderator: s(x.moderator, 120), note: s(x.note, 300), updated: +x.updated || 0 };
+  }
+  function ddHas(x) { return !!(x && (x.topic || x.presenter || x.moderator || x.note)); }
+  function ddGet(iso) { var x = ddAll()[iso]; if (!x) return null; x = ddClean(x); return ddHas(x) ? x : null; }
+  function ddOkDay(iso) { return /^\d{4}-\d{2}-\d{2}$/.test(String(iso)); }
+  function ddWeeks(today, n) { var out = [], d = ddNext(today); for (var i = 0; i < n; i++) { out.push(ddIso(d)); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7); } return out; }
+  function ddCanEdit() { return isSynced() && !!cst().admin; }
+  function ddLine(x) {   // topic, then who
+    var who = [x.presenter ? tf('pt.dd.by', { name: x.presenter }) : '', x.moderator ? tf('pt.ev.moderator', { name: x.moderator }) : ''].filter(Boolean).join(' · ');
+    return (x.topic ? '<b class="dd-topic">' + esc(x.topic) + '</b>' : '') + (who ? '<span class="muted dd-who">' + esc(who) + '</span>' : '') + (x.note ? '<span class="ev__note">' + esc(x.note) + '</span>' : '');
+  }
+  function ddFormHTML(iso) {
+    var x = ddGet(iso) || ddClean({});
+    function f(name, key, max, v) { return '<label class="field"><span class="field__l">' + esc(t(key)) + '</span><input name="' + name + '" maxlength="' + max + '" value="' + esc(v) + '"></label>'; }
+    return '<form id="dd-form" class="dd-form" data-day="' + esc(iso) + '">' + f('topic', 'pt.dd.fTopic', 160, x.topic) + f('presenter', 'pt.dd.fBy', 120, x.presenter) + f('moderator', 'pt.dd.fMod', 120, x.moderator) +
+      '<label class="field"><span class="field__l">' + esc(t('pt.dd.fNote')) + '</span><textarea name="note" rows="2" maxlength="300">' + esc(x.note) + '</textarea><span class="field__h">' + esc(t('pt.dd.fHint')) + '</span></label>' +
+      '<p class="guess__acts"><button type="submit" class="btn btn--solid">' + esc(t('pt.dd.save')) + '</button><button type="button" class="btn" id="dd-cancel">' + esc(t('bt.ev.cancel')) + '</button>' +
+      (ddHas(x) ? '<button type="button" class="link-btn" id="dd-clear">' + esc(t('pt.dd.clear')) + '</button>' : '') + '</p><p class="form__status" id="dd-fst" role="status" aria-live="polite"></p></form>';
+  }
+  function ddSchedHTML(today) {
+    if (!isSynced()) return '<p class="muted dd-need">' + esc(t('pt.dd.needSync')) + ' <a href="#/sync">' + esc(t('nav.sync')) + '</a></p>';
+    var can = ddCanEdit(), weeks = ddWeeks(today, DD_WEEKS);
+    return '<details class="ev__list dd-sched" id="dd-sched"' + (ddOpen || ddEdit ? ' open' : '') + '><summary>' + esc(t('pt.dd.sched')) + ' <span class="muted">(' + esc(tf('pt.dd.weeks', { n: DD_WEEKS })) + ')</span></summary>' +
+      (can ? '<p class="field__h">' + esc(t('pt.dd.adminHint')) + '</p>' : '') + '<ul class="plain dd-list">' + weeks.map(function (iso) {
+        var x = ddGet(iso), d = evDate({ date: iso, time: '' });
+        if (ddEdit === iso && can) return '<li class="dd-wk dd-wk--edit"><span class="dd-wk__d">' + esc(d) + '</span>' + ddFormHTML(iso) + '</li>';
+        return '<li class="dd-wk"><span class="dd-wk__d">' + esc(d) + '</span><span class="dd-wk__b">' + (x ? ddLine(x) : '<span class="muted">' + esc(t('pt.dd.none')) + '</span>') + '</span>' +
+          (can ? '<button type="button" class="link-btn dd-wk__e" data-ddedit="' + esc(iso) + '" aria-label="' + esc(tf('pt.dd.editA', { date: d })) + '">' + esc(t(x ? 'pt.dd.edit' : 'pt.dd.add')) + '</button>' : '') + '</li>';
+      }).join('') + '</ul></details>';
+  }
+  function ddStore(iso, x) {
+    var all = ddAll(), cut = ddIso(new Date(Date.now() - DD_KEEP_DAYS * 864e5));
+    all[iso] = ddClean(x);
+    Object.keys(all).forEach(function (k) { if (!ddOkDay(k) || k < cut) delete all[k]; });
+    store.set('dd', all);
+  }
+  function ddSave(iso, vals, st) {   // straight to the cloud (admins only, by the rules), then onto this phone
+    if (ddBusy || !ddOkDay(iso)) return;
+    var x = ddClean(vals); x.updated = Date.now(); ddBusy = true; st.classList.remove('is-error'); st.textContent = t('pt.dd.saving');
+    cloud().then(function (api) {
+      if (!api.user()) throw { code: 'signed-out' };
+      if (!api.putDidactic) throw { code: 'unavailable' };
+      return api.putDidactic(cst().code, iso, x);
+    }).then(function () {
+      ddBusy = false; ddStore(iso, x); ddEdit = ''; ddOpen = true; toast(t(ddHas(x) ? 'pt.dd.saved' : 'pt.dd.cleared'));
+      if (currentKey() === 'events') route({ keepScroll: true });
+    }).catch(function (e) { ddBusy = false; st.textContent = tf('pt.dd.failed', { why: errText(e) }); st.classList.add('is-error'); });
+  }
+  function syncDD(api, c, full) {   // pull the schedule; a full pull once a day also drops weeks that left the cloud
+    if (!api.didacticsSince) return Promise.resolve(0);
+    return api.didacticsSince(c.code, full ? 0 : (c.ddPull || 0)).then(function (list) {
+      var all = full ? {} : ddAll(), old = ddAll(), maxU = full ? 0 : (c.ddPull || 0), n = 0, cut = ddIso(new Date(Date.now() - DD_KEEP_DAYS * 864e5));
+      list.forEach(function (r) {
+        if (r.updated > maxU) maxU = r.updated;
+        if (!ddOkDay(r.id) || r.id < cut) return;
+        var x = ddClean(r), was = old[r.id];
+        if (!was || (+was.updated || 0) < x.updated) n++;
+        if (!all[r.id] || (+all[r.id].updated || 0) <= x.updated) all[r.id] = x;
+      });
+      if (full) n += Object.keys(old).filter(function (k) { return !all[k] && ddHas(ddClean(old[k])); }).length;
+      Object.keys(all).forEach(function (k) { if (!ddOkDay(k) || k < cut) delete all[k]; });
+      store.set('dd', all); cset(function (x) { x.ddPull = maxU; });
+      return n;
+    }).catch(function () { return 0; });   // rules not published yet, or offline: the rest of the sync still counts
+  }
+
   (function () {
     var home0 = VIEWS.home;
     VIEWS.home = function () {   // just under the chat card and Your card strip, above the birthday banner
@@ -4798,15 +4876,25 @@
     };
     var ev0 = VIEWS.events, evA = AFTER.events;
     VIEWS.events = function () {
-      var html = ev0.apply(null, arguments), today = new Date(), n = ddNext(today), when = evWhen({ date: ddIso(n) }, today);
+      var html = ev0.apply(null, arguments), today = new Date(), n = ddNext(today), when = evWhen({ date: ddIso(n) }, today), cur = ddGet(ddIso(n));
       var row = '<section class="card dd-ev"><div class="ev__when"><span class="ev__d">' + esc(when) + '</span></div><div class="ev__body"><strong>📚 ' + esc(t('pt.dd.title')) + '</strong><span class="muted">' + esc(t('pt.dd.every')) + ' · ' + esc(tf('pt.dd.next', { date: evDate({ date: ddIso(n), time: '' }) })) + '</span>' +
-        '<span class="ev__acts"><button type="button" class="link-btn" id="dd-cal">' + esc(t('pt.dd.cal')) + '</button></span><span class="form__status" id="dd-status" role="status"></span></div></section>';
+        (cur ? '<span class="dd-line dd-cur">' + ddLine(cur) + '</span>' : '') +
+        '<span class="ev__acts"><button type="button" class="link-btn" id="dd-cal">' + esc(t('pt.dd.cal')) + '</button></span><span class="form__status" id="dd-status" role="status"></span></div>' + ddSchedHTML(today) + '</section>';
       return html.replace('<div class="ev-layout">', row + '<div class="ev-layout">');
     };
     AFTER.events = function () {
       if (evA) evA.apply(null, arguments);
       var b = document.getElementById('dd-cal'), st = document.getElementById('dd-status');
       if (b) b.addEventListener('click', function () { ddIcsOut(function (m) { st.textContent = m; }); });
+      var sc = document.getElementById('dd-sched'), fm = document.getElementById('dd-form');
+      if (sc) sc.addEventListener('toggle', function () { ddOpen = sc.open; });
+      main.querySelectorAll('[data-ddedit]').forEach(function (e) { e.addEventListener('click', function () { ddEdit = e.getAttribute('data-ddedit'); ddOpen = true; route({ keepScroll: true }); var f = document.querySelector('#dd-form [name=topic]'); if (f) f.focus(); }); });
+      if (fm) {
+        var day = fm.getAttribute('data-day'), fst = document.getElementById('dd-fst'), cl = document.getElementById('dd-clear');
+        fm.addEventListener('submit', function (ev) { ev.preventDefault(); ddSave(day, { topic: fm.topic.value, presenter: fm.presenter.value, moderator: fm.moderator.value, note: fm.note.value }, fst); });
+        document.getElementById('dd-cancel').addEventListener('click', function () { ddEdit = ''; route({ keepScroll: true }); });
+        if (cl) cl.addEventListener('click', function () { ddSave(day, {}, fst); });
+      }
     };
   })();
 
