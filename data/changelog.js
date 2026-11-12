@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.3.3', date: '2026-11-12', title: 'Tagalog wording',
+    items: [
+      { type: 'correction', text: 'Tagalog: My card asks for "Taon na nagsimula ka ng residency".', href: '#/me' }
+    ]
+  },
+  {
     version: '1.3.2', date: '2026-11-12', title: 'Tagalog wording',
     items: [
       { type: 'correction', text: 'Tagalog: the batch year box says "Taon na nagsimula ng residency".', href: '#/sync' }
