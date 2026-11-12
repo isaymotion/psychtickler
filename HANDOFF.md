@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 11 November 2026, at version 1.2.2 (commit `bcce937` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events; 1.2.2 fixes the Tagalog for "Happening now" to "Ginaganap ngayon" (her wording). Next: two-account test (section 7).
+Last updated 12 November 2026, at version 1.2.3 (commit `504d43e` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events; 1.2.2 fixes the Tagalog for "Happening now" to "Ginaganap ngayon" (her wording); 1.2.3 adds the GAPP webinar (27 Nov 2026) to `data/dept-events.js`. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -73,12 +73,12 @@ python3 -m http.server 8765 &          # run from the main checkout
 python3 ../pt-tools/tools/t1.py         # bring card, edit, save, open every screen
 python3 ../pt-tools/tools/t2.py         # four phones on a mock cloud
 python3 ../pt-tools/tools/t3.py         # bring from a backup file (1.1.2), wrong files, nothing leaks
-python3 ../pt-tools/tools/t4.py         # built-in department events (1.2.1): range, Register, lists, .ics
+python3 ../pt-tools/tools/t4.py         # built-in department events (1.2.1, GAPP 1.2.3): range, Register, lists, timed .ics
 python3 <isaymotion-app-design>/scripts/check_sw.py .
 python3 <isaymotion-app-design>/scripts/check_design.py . --browser   # then delete _qa/
 ```
 
-Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 7 `ok` lines and `no errors` (update it when the PPA entries are removed). Both checks print PASS.
+Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 10 `ok` lines and `no errors` (update it when the PPA or GAPP entries are removed). Both checks print PASS.
 
 ## 6. Status
 
@@ -96,6 +96,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
 | 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. `pt.ev.now` Tagalog set by her in 1.2.2 ("Ginaganap ngayon"); `pt.ev.register` ("Mag-register") approved by her |
+| 1.2.3 GAPP webinar | Done 12 Nov 2026, pushed (`504d43e`): id `gapp-2026-webinar`, "Drug Prevention and Control: A Time for All to Come Together to Champion for Health" (GAPP with PPA and Otsuka), Fri 27 Nov 2026 19:00, Zoom, free, Register https://bit.ly/GAPP2026Webinar. t4 now checks it (Register link, Tomorrow on 26 Nov, .ics `DTSTART:20261127T190000`) and accepts "Ginaganap ngayon" |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
@@ -105,7 +106,8 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill). The message should include the backup-file steps for bringing a Batch Tickler card.
 4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent). Already approved by her: `pt.ev.now` "Ginaganap ngayon" and `pt.ev.register` "Mag-register" (hyphen confirmed).
 5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
-6. Later: DutySched publishing, then "on duty today".
+6. After 27 Nov 2026, remove the GAPP webinar from `data/dept-events.js` when it is long past (and drop its t4 checks).
+7. Later: DutySched publishing, then "on duty today".
 
 ## 8. Pitfalls learned
 
