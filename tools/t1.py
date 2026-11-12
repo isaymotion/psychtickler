@@ -31,7 +31,7 @@ with sync_playwright() as p:
     me=json.loads(pg.evaluate("localStorage.getItem('pt:v1:me')"))
     print('saved aud:', me['aud'], 'pos', me['pos'], me['startYear'], 'at', pg.url)
     pg.screenshot(path=OUT+'/person.png', full_page=True)
-    for r in ['', 'batch','cup','buddies','kudos','advice','polls','chat','sync','birthdays','stats','print','whats-new','about','wrapped','bingo']:
+    for r in ['', 'batch','consultants','cup','buddies','kudos','advice','polls','chat','sync','birthdays','stats','print','whats-new','about','wrapped','bingo']:
         pg.goto(BASE+'#/'+r); pg.wait_for_timeout(350)
         txt=pg.locator('#main').inner_text()
         bad=[w for w in ['pt.','bt.','nav.','undefined','NaN'] if w in txt]
