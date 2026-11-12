@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.3.1', date: '2026-11-12', title: 'Clearer batch year',
+    items: [
+      { type: 'update', text: 'Cloud sync: the batch year box now says "Year started residency", and the admin hint gives an example (2027).', href: '#/sync' }
+    ]
+  },
+  {
     version: '1.3.0', date: '2026-11-12', title: 'Event posters and programmes',
     items: [
       { type: 'feature', text: 'Department events can show a poster: tap the picture to see it full size. The GAPP webinar (27 November) now has its poster and the full programme with times and speakers.', href: '#/events' },

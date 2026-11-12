@@ -1006,7 +1006,7 @@ body.is-chat-room .site-foot{padding-bottom:env(safe-area-inset-bottom,0px)}
 .sync__list--adm li{flex-wrap:wrap;gap:8px 12px}
 .adm-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .adm-f select,.adm-f input{min-height:40px;border:1px solid var(--rule);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);padding:0 8px;font-size:.92rem}
-.adm-f input{width:7.5em}
+.adm-f input{width:13.5em;max-width:100%}
 /* bring my card */
 .bring-who{display:flex;align-items:center;gap:14px;margin-bottom:8px}
 .bring-who h2{margin:0}

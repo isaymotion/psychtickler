@@ -3116,7 +3116,7 @@
   function isOwnerEmail(e) { return (CCFG.admins || []).map(function (x) { return String(x).toLowerCase(); }).indexOf(String(e || '').toLowerCase()) >= 0; }
   function admFields(m) {   // position + batch year, editable by an admin (in a request before approving, or on a member)
     return '<span class="adm-f"><label><span class="sr-only">' + esc(t('pt.pos.label')) + '</span><select data-f="role">' + ['resident', 'consultant', 'alumni'].map(function (r) { return '<option value="' + r + '"' + ((m.role || 'resident') === r ? ' selected' : '') + '>' + esc(t('pt.pos.' + r)) + '</option>'; }).join('') + '</select></label>' +
-      '<label><span class="sr-only">' + esc(t('pt.pos.startYear')) + '</span><input data-f="batch" type="number" inputmode="numeric" min="1980" max="2100" placeholder="' + esc(t('pt.pos.batchPh')) + '" value="' + (m.batch || '') + '"></label></span>';
+      '<label><span class="sr-only">' + esc(t('pt.pos.startYear')) + '</span><input data-f="batch" type="number" inputmode="numeric" min="1980" max="2100" placeholder="' + esc(t('pt.pos.batchPh')) + '" title="' + esc(t('pt.pos.startYear')) + '" value="' + (m.batch || '') + '"></label></span>';
   }
   function admRead(uid) {
     var row = main.querySelector('[data-row="' + uid + '"]'), role = row ? row.querySelector('[data-f="role"]').value : 'resident', batch = row ? toInt(row.querySelector('[data-f="batch"]').value, 1980, 2100) : 0;

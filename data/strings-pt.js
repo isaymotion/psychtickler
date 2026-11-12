@@ -33,7 +33,7 @@
     'pt.pos.alumni': 'Alumni',
     'pt.pos.startYear': 'Year you started residency',
     'pt.pos.startHint': 'This is your batch. Your year level is worked out from it each January, so you never have to update it.',
-    'pt.pos.batchPh': 'Batch year',
+    'pt.pos.batchPh': 'Year started residency',
     'pt.pos.chief': 'I am the chief resident',
     'pt.pos.chiefShort': 'Chief resident',
     'pt.pos.y0': 'Incoming first year',
@@ -63,7 +63,7 @@
     'pt.aud.for': 'Who sees {field}',
 
     /* admins */
-    'pt.adm.hint': 'Set each person’s position and batch year, then tap Save. Position decides who reads residents-only answers and channels; mark someone Alumni when they finish instead of removing them.',
+    'pt.adm.hint': 'Set each person’s position and batch year (the year they started residency, for example 2027), then tap Save. Position decides who reads residents-only answers and channels; mark someone Alumni when they finish instead of removing them.',
     'pt.adm.admin': 'Admin',
     'pt.adm.save': 'Save',
     'pt.adm.saved': 'Saved {name}.',
@@ -258,7 +258,7 @@
     'pt.pos.alumni': 'Alumni',
     'pt.pos.startYear': 'Taon ng simula mo sa residency',
     'pt.pos.startHint': 'Ito ang batch mo. Kinukuwenta ang year level mo mula rito tuwing Enero, kaya hindi mo na kailangang i-update.',
-    'pt.pos.batchPh': 'Taon ng batch',
+    'pt.pos.batchPh': 'Taon ng simula sa residency',
     'pt.pos.chief': 'Ako ang chief resident',
     'pt.pos.chiefShort': 'Chief resident',
     'pt.pos.y0': 'Incoming first year',
@@ -288,7 +288,7 @@
     'pt.aud.for': 'Sino ang makakakita ng {field}',
 
     /* admins */
-    'pt.adm.hint': 'Itakda ang posisyon at taon ng batch ng bawat isa, tapos i-tap ang I-save. Ang posisyon ang nagpapasya kung sino ang makakabasa ng mga sagot at channel na para sa mga resident lang; i-mark na Alumni ang isang tao kapag natapos na siya sa halip na alisin.',
+    'pt.adm.hint': 'Itakda ang posisyon at taon ng batch ng bawat isa (ang taon na nagsimula sila sa residency, halimbawa 2027), tapos i-tap ang I-save. Ang posisyon ang nagpapasya kung sino ang makakabasa ng mga sagot at channel na para sa mga resident lang; i-mark na Alumni ang isang tao kapag natapos na siya sa halip na alisin.',
     'pt.adm.admin': 'Admin',
     'pt.adm.save': 'I-save',
     'pt.adm.saved': 'Na-save si {name}.',
