@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.2.3', date: '2026-11-12', title: 'GAPP webinar on Department events',
+    items: [
+      { type: 'content', text: 'Department events now shows the free GAPP webinar "Drug Prevention and Control: A Time for All to Come Together to Champion for Health" (with the PPA and Otsuka), Friday 27 November 2026, 7:00 PM on Zoom, with a Register link.', href: '#/events' }
+    ]
+  },
+  {
     version: '1.2.2', date: '2026-11-11', title: 'Tagalog wording',
     items: [
       { type: 'correction', text: 'Tagalog: an event that is on now says "Ginaganap ngayon".', href: '#/events' }

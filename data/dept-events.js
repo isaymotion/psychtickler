@@ -16,6 +16,16 @@
   ];
   window.DEPT_EVENTS = [
     {
+      id: 'gapp-2026-webinar',
+      title: 'GAPP webinar: Drug Prevention and Control: A Time for All to Come Together to Champion for Health',
+      date: '2026-11-27', time: '19:00',
+      place: 'Zoom (online)',
+      note: 'Free webinar by the Group for Addiction Psychiatry of the Philippines (GAPP), with the Philippine Psychiatric Association (PPA) and Otsuka. ' +
+        'Speakers cover the clinical management of substance use disorders, the neurobiology of addiction, the psychological aspects of treatment, and treatment pathways and levels of care. ' +
+        'Open to members and fellow healthcare professionals. Register for free with the link.',
+      url: 'https://bit.ly/GAPP2026Webinar'
+    },
+    {
       id: 'ppa-2027-reg-deadline',
       title: 'PPA 2027 Annual: registration deadline',
       date: '2026-11-30', time: '', place: '',
