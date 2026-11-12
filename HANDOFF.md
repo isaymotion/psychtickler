@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 12 November 2026 (after 1.3.2), at version 1.3.2 (commit `b64b700` on `main`). All tests (t1, t2, t3, t4, t5) and both checks pass. 1.3.0 adds event posters and programmes (built-in and member-added) and pins the built-in events in #announcements. 1.3.1 rewords the admin batch year box to "Year started residency". She reports the updated `firestore.rules` (with the `posters` match) is published in Firebase (12 Nov); a live poster upload is not yet confirmed. Next: two-account test (section 7).
+Last updated 12 November 2026 (after 1.3.3), at version 1.3.3 (commit `f432d8d` on `main`). All tests (t1, t2, t3, t4, t5) and both checks pass. 1.3.0 adds event posters and programmes (built-in and member-added) and pins the built-in events in #announcements. 1.3.1 rewords the admin batch year box to "Year started residency". She reports the updated `firestore.rules` (with the `posters` match) is published in Firebase (12 Nov); a live poster upload is not yet confirmed. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -116,7 +116,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. She confirms a poster upload works on the live space (rules published 12 Nov). Then the two-account test (one resident, one consultant) on the live space, including attaching a poster to an event and seeing it on the other account; fix any `permission-denied`.
 3. Make Doc Andrei and Doc Vince admins after they join. Act on suggestions from the pilot group (Doc IC, Doc Andrei, Doc Vince), then write the department-wide install/join group message (app-install-message skill), including the backup-file steps for bringing a Batch Tickler card. Ask whether to hide the Year-level cup.
-4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent). Already approved by her: `pt.pos.batchPh` "Taon na nagsimula ng residency" (her wording; ask whether `pt.pos.startYear`, still the draft "Taon ng simula mo sa residency" on My card, should match), `pt.ev.now` "Ginaganap ngayon" and `pt.ev.register` "Mag-register" (hyphen confirmed).
+4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent). Already approved by her: `pt.pos.batchPh` "Taon na nagsimula ng residency" (her wording, 1.3.2), `pt.pos.startYear` "Taon na nagsimula ka ng residency" (1.3.3, `f432d8d`), `pt.ev.now` "Ginaganap ngayon" and `pt.ev.register` "Mag-register" (hyphen confirmed).
 5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
 6. After 27 Nov 2026, remove the GAPP webinar from `data/dept-events.js` when it is long past: also delete `img/events/gapp-2026-webinar.jpg`, take it out of `CORE` in `sw.js`, and adjust t4 and t5.
 7. Later: DutySched publishing, then "on duty today".
