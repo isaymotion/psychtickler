@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 12 November 2026, at version 1.2.3 (commit `504d43e` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events; 1.2.2 fixes the Tagalog for "Happening now" to "Ginaganap ngayon" (her wording); 1.2.3 adds the GAPP webinar (27 Nov 2026) to `data/dept-events.js`. Next: two-account test (section 7).
+Last updated 12 November 2026 (after the invite messages), at version 1.2.3 (commit `504d43e` on `main`). All tests (t1, t2, t3, t4) and both checks pass. 1.2.1 adds the PPA 2027 conventions as built-in department events; 1.2.2 fixes the Tagalog for "Happening now" to "Ginaganap ngayon" (her wording); 1.2.3 adds the GAPP webinar (27 Nov 2026) to `data/dept-events.js`. Next: two-account test (section 7).
 
 ## 1. Project and audience
 
@@ -20,6 +20,7 @@ Last updated 12 November 2026, at version 1.2.3 (commit `504d43e` on `main`). Al
 - Residents are "first years, second years, third years", never PGY.
 - No patient information anywhere in the app. Emergency and contact details never leave a phone without the owner's tick.
 - Tagalog strings are drafts for Dr. Navarro's review.
+- Messages she sends: she signs "— Isay". Dr. Irene Carmelle Tan (training officer, consultant) is "Doc IC". Doc Vince is "Vince" only in her DMs to him and "Doc Vince" to everyone else. Doc Andrei stays "Doc Andrei". Never put the join code in this doc or the repo.
 - Her preference: use subagents (Sonnet) for simple tasks such as rewording or translation; keep design, privacy decisions and final review in the main chat.
 - Push to `main` only when she asks for a build or change. Commit trailer lines come from the session's attribution reminder.
 
@@ -92,7 +93,8 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | `firestore.rules` on the real project | Combined file PUBLISHED in Firebase 11 Nov 2026 (no errors). Behaviour not yet verified by a two-account test |
 | GitHub Pages switched on, rules pasted, department space created | Done 11 Nov 2026: rules published, space "MMWGH Psychiatry" created by the owner (join code is hers; not stored here) |
 | Bring card from Batch Tickler | Fixed in 1.1.2: file route for installed apps; same-browser route still works |
-| Doc Andrei and Doc Vince made admins | After they join |
+| Doc Andrei and Doc Vince made admins | After they join (☰ › Cloud sync › Members, Admin option) |
+| Pilot invites (12 Nov 2026) | Messages drafted for her to send (app-install-message skill): Psych Tickler to Doc IC and Doc Andrei (Andrei's says he and Doc Vince will be co-admins; Doc Vince was invited by her separately); Usap Tayo (`isaymotion.github.io/Tagalog/`, no sign-in) to Doc IC, Vince and Doc Andrei. Psych Tickler messages describe it as "for residents, consultants, and any MMWGH alumni who want to join", running on GitHub with cards, chat and polls on Google Firebase for approved members only, and ask for suggestions before the department-wide rollout. She left the Year-level cup out of the messages; it is still in the app (ask if she wants it hidden) |
 | Combined rules file copied into `isaymotion/tickler` | Done 11 Nov 2026 (`8d965bc`), README there updated; Batch Tickler rules unchanged, no app or `sw.js` change |
 | 1.2.0 Didactics day every Thursday | Done 11 Nov 2026, pushed (`3605fdf`): Home card on Thursdays (heads-up Wednesdays), pinned weekly row on Department events, weekly .ics (`RRULE BYDAY=TH`). Section `PSYCH TICKLER 1.2.0: DIDACTICS DAY`, weekday `DD_DOW`. 9 `pt.dd.*` Tagalog drafts to review |
 | 1.2.1 PPA 2027 conventions | Done 11 Nov 2026, pushed (`dbb8d45`): `data/dept-events.js` with the Annual registration deadline (30 Nov 2026, early bird PHP 10,000, reimbursement rules) and Psychiatry Without Borders, PRCP–PPA Congress 19–22 Jan 2027 (Crowne Plaza Hotel Galleria), Register link https://ppaprcpcongress2027.org/, Annual (10) and Midyear (8) attendee lists. Midyear (July 2027) has no dates yet. `pt.ev.now` Tagalog set by her in 1.2.2 ("Ginaganap ngayon"); `pt.ev.register` ("Mag-register") approved by her |
@@ -103,7 +105,7 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. Two-account test (one resident, one consultant) on the live space; fix any `permission-denied`.
-3. Make Doc Andrei and Doc Vince admins after they join; offer the install/join group message (app-install-message skill). The message should include the backup-file steps for bringing a Batch Tickler card.
+3. Make Doc Andrei and Doc Vince admins after they join. Act on suggestions from the pilot group (Doc IC, Doc Andrei, Doc Vince), then write the department-wide install/join group message (app-install-message skill), including the backup-file steps for bringing a Batch Tickler card. Ask whether to hide the Year-level cup.
 4. Review Tagalog drafts, including the 13 new/changed `pt.bring.*` strings from 1.1.2 (drafted by a Sonnet subagent). Already approved by her: `pt.ev.now` "Ginaganap ngayon" and `pt.ev.register` "Mag-register" (hyphen confirmed).
 5. When the PPA Midyear 2027 dates are announced, add it to `data/dept-events.js` (move the Midyear list onto it) and adjust t4.
 6. After 27 Nov 2026, remove the GAPP webinar from `data/dept-events.js` when it is long past (and drop its t4 checks).
