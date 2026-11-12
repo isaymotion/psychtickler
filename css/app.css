@@ -1183,3 +1183,13 @@ body.is-chat-room .site-foot{padding-bottom:env(safe-area-inset-bottom,0px)}
 .chat-pins{padding:0 14px;margin:0 0 8px}
 .chat-pins summary{cursor:pointer;padding:12px 0;font:700 .95rem/1.3 var(--sans)}
 .chat-pins__body{max-height:46vh;overflow:auto;padding-bottom:10px}
+/* Psych Tickler 1.5.0: consultant quick facts */
+.cq{border-left:4px solid var(--accent)}
+.cq-nudge{margin:0 0 18px}
+.cq-clip{min-width:0;overflow-wrap:anywhere}
+.cons{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:12px}
+.cons__row{padding:12px 16px 16px;min-width:0}
+.cons__who{font-size:1.05rem}
+.cons__facts{padding:6px 0 0;gap:12px}
+.cons__none{margin:4px 0 0}
+@media (min-width:900px){.cons{grid-template-columns:1fr 1fr}}

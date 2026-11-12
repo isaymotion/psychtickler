@@ -10,6 +10,9 @@ window.CARD_GROUPS = ['quick', 'consultant', 'basics', 'emergency', 'background'
 window.QUICK_FIELDS = ['nickname', 'preferredName', 'hometown', 'languages', 'askMe', 'medSchool', 'whyPsych', 'hobbies', 'food', 'coffeeTea', 'music', 'shows', 'karaoke', 'funFact', 'advice'];
 /* Groups shown only for one position (card.pos): the consultant group is hidden on a resident's form and page. */
 window.POS_GROUPS = { consultant: 'consultant' };
+/* Psych Tickler 1.5.0: a consultant's quick facts, in display order. Shown in a box at the top of their page, on their
+   card in the directory and on #/consultants. All are plain fields of the 'consultant' group below. */
+window.CONS_QUICK = ['cSpecialty', 'clinicDays', 'reachPref', 'contactHours'];
 /* Sub-sections inside a group (labels: bt.s.<sub>), in display order. Fields carry sub: '<key>'. */
 window.CARD_SUBS = { favourites: ['screen', 'play', 'words', 'food', 'little', 'medschool'], life: ['everyday', 'growingup', 'you', 'horizons', 'residency', 'fun'] };
 
@@ -32,7 +35,8 @@ window.CARD_FIELDS = [
   { key: 'emergencyRelation2',group: 'emergency',  type: 'text',     print: false, icon: 'users' },
   { key: 'emergencyNumber2',group: 'emergency',     type: 'tel',      print: false, icon: 'phone' },
   { key: 'cSpecialty',      group: 'consultant',  type: 'text',     print: true,  icon: 'spark' },
-  { key: 'clinicDays',      group: 'consultant',  type: 'text',     print: true,  icon: 'school' },
+  { key: 'clinicDays',      group: 'consultant',  type: 'text',     print: true,  icon: 'calendar' },
+  { key: 'reachPref',       group: 'consultant',  type: 'text',     print: true,  icon: 'chat', hint: true },
   { key: 'referralPref',    group: 'consultant',  type: 'textarea', print: true,  icon: 'chat' },
   { key: 'contactHours',    group: 'consultant',  type: 'text',     print: true,  icon: 'phone' },
   { key: 'teaching',        group: 'consultant',  type: 'textarea', print: true,  icon: 'book' },

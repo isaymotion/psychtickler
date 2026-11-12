@@ -760,7 +760,7 @@
     var d = daysUntil(c, today), soon = d !== null && d <= 14;
     return '<a class="card pcard" href="#/person/' + encodeURIComponent(c.id) + '">' + avatar(c) +
       '<span class="pcard__body"><span class="pcard__name">' + esc(c.name) + (isMe(c) ? ' <span class="badge">' + esc(t('bt.batch.you')) + '</span>' : '') + '</span>' +
-      (c.nickname ? '<span class="pcard__nick">“' + esc(c.nickname) + '”</span>' : '') + posChip(c) +
+      (c.nickname ? '<span class="pcard__nick">“' + esc(c.nickname) + '”</span>' : '') + posChip(c) + consLine(c) +
       (c.hometown ? '<span class="pcard__meta">' + icon('pin', 'pcard__ico') + esc(c.hometown) + '</span>' : '') + askChips(c, 'askme--sm') +
       (c.bmonth ? '<span class="pcard__meta' + (soon ? ' is-soon' : '') + '">' + icon('cake', 'pcard__ico') + esc(bdayText(c)) + (d === 0 ? ' · ' + esc(t('bt.home.today')) : '') + '</span>' : '') +
       '</span></a>';
@@ -882,9 +882,9 @@
     if (!c) return '<div class="wrap page">' + crumb(t('nav.batch')) + '<div class="empty"><h2>' + esc(t('notfound.title')) + '</h2><p>' + esc(t('bt.person.notFound')) + '</p><p><a class="btn btn--solid" href="#/batch">' + esc(t('nav.batch')) + '</a></p></div></div>';
     var today = new Date(), d = daysUntil(c, today), me = isMe(c);
     var me0 = getMe();
-    var sections = GROUPS.filter(function (g) { return g !== 'contact'; }).map(function (g) {
+    var sections = GROUPS.filter(function (g) { return g !== 'contact' && (g !== 'consultant' || isCons(c)); }).map(function (g) {
       var rows = subChunks(g).map(function (ch) {
-        var r = ch.fields.filter(function (f) { return f.print && c[f.key] && f.key !== 'nickname'; }).map(function (f) { return factRow(f.icon, fieldLabel(f.key), f.type === 'month' ? fmtMonth(c[f.key]) : c[f.key]); }).join('');
+        var r = ch.fields.filter(function (f) { return f.print && c[f.key] && f.key !== 'nickname' && !(g === 'consultant' && cqShown(c) && CONS_QUICK.indexOf(f.key) >= 0); }).map(function (f) { return factRow(f.icon, fieldLabel(f.key), f.type === 'month' ? fmtMonth(c[f.key]) : c[f.key]); }).join('');
         return r ? (ch.sub ? '<h3 class="facts__sub">' + esc(subLabel(ch.sub)) + '</h3>' : '') + r : '';
       }).join('');
       return rows ? '<h2>' + esc(groupLabel(g)) + '</h2><div class="card facts">' + rows + '</div>' : '';
@@ -920,7 +920,7 @@
         (c.bmonth ? '<p class="person__bday">' + icon('cake', 'fact__ico') + esc(t('bt.person.birthday')) + ': ' + esc(bdayText(c, !!c.showYear)) + (d === 0 ? ' · <strong>' + esc(t('bt.home.today')) + '</strong>' : d !== null && d <= 30 ? ' · ' + esc(d === 1 ? t('bt.home.inDays1') : tf('bt.home.inDaysN', { n: d })) : '') + (c.byear && d !== null && d <= 30 ? ' (' + esc(tf('bt.person.turns', { n: ageOn(c, today.getFullYear() + (d && today.getMonth() + 1 > c.bmonth ? 1 : 0)) })) + ')' : '') + ' <button type="button" class="link-btn" id="cal-one">' + esc(t('bt.cal.one')) + '</button></p><p class="muted person__zodiac">' + esc(t('bt.zodiac')) + ': ' + esc(zodiac(c)) + (chineseZodiac(c) ? ' · ' + esc(t('bt.zodiac.cn')) + ': ' + esc(chineseZodiac(c)) : '') + '</p><p class="form__status" id="cal-status" role="status"></p>' : '') +
         (c.preferredName ? '<p class="muted">' + esc(fieldLabel('preferredName')) + ': ' + esc(c.preferredName) + (c.pronouns ? ' · ' + esc(c.pronouns) : '') + '</p>' : (c.pronouns ? '<p class="muted">' + esc(c.pronouns) + '</p>' : '')) +
         (me ? '<p><a class="btn btn--solid" href="#/me">' + esc(t('bt.person.edit')) + '</a> <span class="muted">' + esc(tf('bt.me.complete', comp)) + '</span></p>' : '') + personActs(c) +
-      '</div></header>' + common + (c.badges && c.badges.length ? '<h2>' + esc(t('nav.badges')) + '</h2>' + badgeChips(c.badges) : '') + shoutSection(c) + wallSection(c) + sections + contact +
+      '</div></header>' + consQuickHTML(c) + common + (c.badges && c.badges.length ? '<h2>' + esc(t('nav.badges')) + '</h2>' + badgeChips(c.badges) : '') + shoutSection(c) + wallSection(c) + sections + contact +
       '<p class="person__foot muted">' + esc(tf('bt.person.updated', { date: bkDate(c.updated) || '—' })) + (me ? '' : ' · <button type="button" class="link-btn" id="rm-person" data-id="' + esc(c.id) + '">' + esc(t('bt.person.remove')) + '</button>') + '</p></div>';
   };
   AFTER.person = function (id) {
@@ -5081,6 +5081,53 @@
     main.querySelectorAll('[data-pdel]').forEach(function (b) { b.addEventListener('click', function () { if (!window.confirm(t('pt.poll.confirmDel'))) return; var id = b.getAttribute('data-pdel'); cloud().then(function (api) { return api.pollDelete(c.code, id); }).then(function () { delete pollState.votes[id]; pollLoad(true); }).catch(fail); }); });
   };
   TITLES.polls = function () { return t('nav.polls'); };
+
+  /* ===================== PSYCH TICKLER 1.5.0: CONSULTANT QUICK FACTS =====================
+     Clinic days, subspecialty or interests, and the preferred way to be reached. They are ordinary card fields in the
+     'consultant' group (always public to the department, never restricted), so nothing new is stored in the cloud.
+     CONS_QUICK (data/fields.js) names them. Shown in three places: a Quick facts box at the top of a consultant's
+     page (the same answers are then left out of the "For consultants" section below it), two short lines on the
+     consultant's card in the directory, and one screen, #/consultants, that lists every consultant with them. */
+  var CONS_QUICK = (window.CONS_QUICK || ['cSpecialty', 'clinicDays', 'reachPref', 'contactHours']).filter(function (k) { return FIELD_BY[k]; });
+  var consQ = '';
+  ICONS.clinic = '<rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M9 7.5V5h6v2.5M12 10.5v6M9 13.5h6"/>';
+  function isCons(c) { return !!c && !isPartner(c) && posKey(c) === 'consultant'; }
+  function cqFilled(c) { return CONS_QUICK.filter(function (k) { return c[k]; }); }
+  function cqShown(c) { return isCons(c) && cqFilled(c).length > 0; }
+  function cqRows(c) { return cqFilled(c).map(function (k) { return factRow(FIELD_BY[k].icon, fieldLabel(k), c[k]); }).join(''); }
+  function cqNudge() { return '<div class="callout cq-nudge"><p class="callout__title">' + esc(t('pt.cq.mineTitle')) + '</p><p>' + esc(t('pt.cq.mineText')) + '</p><p><a class="btn btn--solid" href="#/me">' + esc(t('pt.cq.add')) + '</a></p></div>'; }
+  function consQuickHTML(c) {
+    if (!isCons(c)) return '';
+    var rows = cqRows(c);
+    if (!rows) return isMe(c) ? cqNudge() : '';
+    return '<h2>' + esc(t('pt.cq.title')) + '</h2><div class="card facts cq">' + rows + '</div>';
+  }
+  function consLine(c) {
+    if (!isCons(c)) return '';
+    return (c.cSpecialty ? '<span class="pcard__meta">' + icon('spark', 'pcard__ico') + '<span class="cq-clip">' + esc(clip(c.cSpecialty, 70)) + '</span></span>' : '') +
+      (c.clinicDays ? '<span class="pcard__meta">' + icon('calendar', 'pcard__ico') + '<span class="cq-clip">' + esc(clip(c.clinicDays, 70)) + '</span></span>' : '');
+  }
+  (function () { for (var i = 0; i < NAV.length; i++) if (NAV[i].href === '#/batch') { NAV.splice(i + 1, 0, { label: 'Consultants at a glance', tkey: 'nav.consultants', href: '#/consultants', icon: 'clinic', group: 'Screens' }); return; } })();
+  VIEWS.consultants = function () {
+    var all = people().filter(isCons), me = getMe(), q = consQ.trim().toLowerCase(), html = pageHead('consultants', 'nav.consultants', 'pt.cq.intro');
+    if (me && isCons(me) && cqFilled(me).length < 3) html += cqNudge();
+    if (!all.length) return html + '<div class="empty"><p>' + esc(t('pt.cq.empty')) + '</p><p><a class="btn btn--solid" href="#/batch">' + esc(t('nav.batch')) + '</a> <a class="btn" href="#/sync">' + esc(t('nav.sync')) + '</a></p></div></div>';
+    var shown = q ? all.filter(function (c) { return [c.name, c.nickname].concat(CONS_QUICK.map(function (k) { return c[k]; })).join(' ').toLowerCase().indexOf(q) >= 0; }) : all;
+    return html + '<div class="toolbar"><label class="field field--inline"><span class="sr-only">' + esc(t('pt.cq.filter')) + '</span><input type="search" id="cons-q" placeholder="' + esc(t('pt.cq.filter')) + '" value="' + esc(consQ) + '" autocomplete="off"></label>' +
+      '<span class="muted" id="cons-n">' + esc(shown.length === 1 ? t('pt.cq.count1') : tf('pt.cq.countN', { n: shown.length })) + '</span></div>' +
+      (shown.length ? '<ul class="cons">' + shown.map(function (c) {
+        var rows = cqRows(c);
+        return '<li class="card cons__row" data-cons="' + esc(c.id) + '"><a class="who cons__who" href="#/person/' + encodeURIComponent(c.id) + '">' + avatar(c, 'avatar--sm') + '<span>' + esc(c.name) + (isMe(c) ? ' <span class="badge">' + esc(t('bt.batch.you')) + '</span>' : '') + '</span></a>' +
+          (rows ? '<div class="facts cons__facts">' + rows + '</div>' : '<p class="muted cons__none">' + esc(t('pt.cq.none')) + '</p>') +
+          (isMe(c) ? '<p><a class="btn" href="#/me">' + esc(t('bt.person.edit')) + '</a></p>' : '') + '</li>';
+      }).join('') + '</ul>' : '<div class="empty"><p>' + esc(t('pt.cq.noMatch')) + '</p></div>') + '</div>';
+  };
+  AFTER.consultants = function () {
+    var q = document.getElementById('cons-q'), timer; if (!q) return;
+    q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { consQ = q.value; var pos = q.selectionStart; route({ keepScroll: true }); var nq = document.getElementById('cons-q'); if (nq) { nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (e) {} } }, 160); });
+  };
+  TITLES.consultants = function () { return t('nav.consultants'); };
+  (function () { var rb1 = rebuildIndex; rebuildIndex = function () { rb1(); SEARCH_INDEX.push({ title: t('nav.consultants'), text: t('pt.cq.intro'), href: '#/consultants', kind: t('nav.screens') }); }; })();
 
   /* ===== Router ===== */
   function parts() {

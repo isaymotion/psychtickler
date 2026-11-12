@@ -4,6 +4,15 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.5.0', date: '2026-11-12', title: 'Consultant quick facts',
+    items: [
+      { type: 'feature', text: 'Consultants at a glance: a new screen lists every consultant with their clinic days, subspecialty or interests, and the best way and hours to reach them. Search it by name, day or interest.', href: '#/consultants' },
+      { type: 'feature', text: 'A consultant\'s page now opens with a Quick facts box, and their card in the directory shows their subspecialty and clinic days.', href: '#/batch' },
+      { type: 'feature', text: 'My card for consultants: new answer "Preferred way to be reached". Consultants who have not filled in their quick facts see a reminder.', href: '#/me' },
+      { type: 'correction', text: 'The "For consultants" answers no longer show on the page of someone who is not a consultant.' }
+    ]
+  },
+  {
     version: '1.4.0', date: '2026-11-12', title: 'Didactics schedule',
     items: [
       { type: 'feature', text: 'Didactics schedule: Department events now lists the next 8 Thursdays with the topic, presenter and moderator for each. It needs Cloud sync.', href: '#/events' },
