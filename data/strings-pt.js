@@ -258,7 +258,7 @@
     'pt.pos.alumni': 'Alumni',
     'pt.pos.startYear': 'Taon ng simula mo sa residency',
     'pt.pos.startHint': 'Ito ang batch mo. Kinukuwenta ang year level mo mula rito tuwing Enero, kaya hindi mo na kailangang i-update.',
-    'pt.pos.batchPh': 'Taon ng simula sa residency',
+    'pt.pos.batchPh': 'Taon na nagsimula ng residency',
     'pt.pos.chief': 'Ako ang chief resident',
     'pt.pos.chiefShort': 'Chief resident',
     'pt.pos.y0': 'Incoming first year',

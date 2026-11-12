@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.3.2', date: '2026-11-12', title: 'Tagalog wording',
+    items: [
+      { type: 'correction', text: 'Tagalog: the batch year box says "Taon na nagsimula ng residency".', href: '#/sync' }
+    ]
+  },
+  {
     version: '1.3.1', date: '2026-11-12', title: 'Clearer batch year',
     items: [
       { type: 'update', text: 'Cloud sync: the batch year box now says "Year started residency", and the admin hint gives an example (2027).', href: '#/sync' }
