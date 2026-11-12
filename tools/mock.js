@@ -40,6 +40,9 @@
       putPoster: function(code,id,im){ if(localStorage.getItem('MOCKFAIL')==='posters') return Promise.reject({code:'permission-denied',message:'Missing or insufficient permissions.'}); var d=db(); d.posters=d.posters||{}; d.posters[id]={by:U.uid,updated:Date.now(),data:im.data,w:im.w,h:im.h}; save(d); return P(); },
       getPoster: function(code,id){ var d=db(); window.MOCKLOG.push(['getPoster',id]); return P((d.posters||{})[id]||null); },
       deletePoster: function(code,id){ var d=db(); if(d.posters) delete d.posters[id]; save(d); return P(); },
+      // 1.4.0 didactics schedule; only admins may write (as the rules do); MOCKFAIL=didactics makes the write fail
+      putDidactic: function(code,day,x){ var m=mem()||{}; if(localStorage.getItem('MOCKFAIL')==='didactics' || !(U.owner||m.admin)) return Promise.reject({code:'permission-denied',message:'Missing or insufficient permissions.'}); var d=db(); d.dd=d.dd||{}; d.dd[day]={topic:x.topic||'',presenter:x.presenter||'',moderator:x.moderator||'',note:x.note||'',updated:+x.updated||Date.now(),by:U.uid}; save(d); window.MOCKLOG.push(['putDidactic',day]); return P(); },
+      didacticsSince: function(code,since){ var d=db(); return P(Object.keys(d.dd||{}).filter(function(k){ return d.dd[k].updated>since; }).map(function(k){ return Object.assign({id:k},d.dd[k]); })); },
       chatChannels: function(code,auds){ var d=db(); window.MOCKLOG.push(['auds',auds]); return P((d.ch||[]).filter(function(c){ return auds.indexOf(c.aud)>=0; })); },
       chatCreateChannels: function(code,list){ var d=db(); d.ch=(d.ch||[]).concat(list.map(function(c){ return Object.assign({by:U.uid,created:1,last:0,lastName:''},c); })); save(d); return P(); },
       chatChannelExists: function(){ return P(false); }, chatReports: function(){ return P([]); }, chatListen: function(){ return function(){}; }, chatOldPhotos: function(){ return P([]); },

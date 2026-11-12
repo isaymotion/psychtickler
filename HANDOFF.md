@@ -1,6 +1,6 @@
 # Psych Tickler: handoff
 
-Last updated 12 November 2026 (after 1.3.3), at version 1.3.3 (commit `f432d8d` on `main`). All tests (t1, t2, t3, t4, t5) and both checks pass. 1.3.0 adds event posters and programmes (built-in and member-added) and pins the built-in events in #announcements. 1.3.1 rewords the admin batch year box to "Year started residency". She reports the updated `firestore.rules` (with the `posters` match) is published in Firebase (12 Nov); a live poster upload is not yet confirmed. Next: two-account test (section 7).
+Last updated 12 November 2026 (after 1.4.0), at version 1.4.0 (commit `34f21f8` on `main`). All tests (t1 to t6) and both checks pass. 1.4.0 adds the Didactics schedule (topic, presenter, moderator and note per Thursday, edited by admins) and a new `didactics` rule in `firestore.rules`. **The new rules file is NOT yet published in Firebase and NOT yet copied to `isaymotion/tickler`** (attaching that repo to the session was refused; see section 7). Until the rules are published, saving a week fails with "Not saved" and everything else works. She agreed to a list of ten improvements, built one at a time (section 7); the schedule was the first.
 
 ## 1. Project and audience
 
@@ -36,7 +36,7 @@ Card keys added by Psych Tickler (`sanitizePT`):
 `pos` (`resident` | `consultant` | `alumni`), `startYear` (batch year, 0 for consultants), `chief`, `showYear`, `aud` (for example `{hobbies: 'res', food: 'batch'}`).
 Year level = current year minus `startYear` plus 1; `posKey()` gives `y0` (incoming), `y1`, `y2`, `y3`, `consultant`, `alumni`.
 
-Phone stores (under `pt:v1:`): `me`, `batch` (other cards), `cloud` (sync state incl. `role`, `batch`, `admin`, `partYear`, `partPull`), `roles` (uid to role), `owners` (cardId to uid), `parts` (restricted fields this phone may read).
+Phone stores (under `pt:v1:`): `me`, `batch` (other cards), `cloud` (sync state incl. `role`, `batch`, `admin`, `partYear`, `partPull`), `roles` (uid to role), `owners` (cardId to uid), `parts` (restricted fields this phone may read), `dd` (didactics schedule, date to row; 1.4.0).
 
 Firestore, under `programs/{code}/`:
 - `members/{uid}` `{name, email, joined, role, batch, admin}`; `requests/{uid}`
@@ -44,6 +44,7 @@ Firestore, under `programs/{code}/`:
 - `partsRes/{cardId}` residents-only fields; `byBatch/{year}/parts/{cardId}` my-batch-only fields
 - `channels/{id}` with `aud` (`all` | `res` | `b2027`), `messages`, `reports`, `events`
 - `polls/{id}` and `polls/{id}/votes/{uid}`
+- `didactics/{YYYY-MM-DD}` `{topic, presenter, moderator, note, updated, by}` (1.4.0; admins write, members read; a cleared week is a row of empty strings)
 - `events/{id}` (title, date, time, place, note, `poster` = upload time or 0, `updated`, `by`, `deleted`); `posters/{eventId}` `{by, updated, data, w, h}` (1.3.0; data URL under 420,000 characters)
 
 `firestore.rules` holds the rules for BOTH apps (`/batches` for Batch Tickler, `/programs` for Psych Tickler); one project has one rules file. The same file is in `isaymotion/tickler`; any rule change must be copied to both repos so they stay identical.
@@ -56,7 +57,14 @@ Event posters and programmes (1.3.0), section `PSYCH TICKLER 1.3.0: EVENT POSTER
 - `cloudSync({pushOnly})` now also sends new or edited events (before 1.3.0 they waited for the next full sync).
 - Chat: `chSort()` lists `announcements` first with a "Pinned" badge; `annPinsHTML()` puts a closed "Department events" box at the top of #announcements with up to 4 upcoming built-in events (poster, programme, Register).
 
-Didactics day (1.2.0) is phone-only (no cloud data), in the section just before `PSYCH TICKLER 1.0.0: FUN`; it wraps `VIEWS.home`, `VIEWS.events` and `AFTER.events`.
+Didactics day (1.2.0), in the section just before `PSYCH TICKLER 1.0.0: FUN`, wraps `VIEWS.home`, `VIEWS.events` and `AFTER.events`. The weekly reminder itself is phone-only.
+
+Didactics schedule (1.4.0), sub-section `PSYCH TICKLER 1.4.0: DIDACTICS SCHEDULE` inside the Didactics day section:
+- The Didactics day row on Department events shows this week's entry (`.dd-cur`) and a `<details id="dd-sched">` with the next `DD_WEEKS` (8) Thursdays. Without Cloud sync it shows a hint instead.
+- Admins (`ddCanEdit()` = synced and `cst().admin`) get Add/Edit per week; `ddFormHTML()` is drawn inline in that row (`ddEdit` holds the date). `ddSave()` writes straight to the cloud with `api.putDidactic` (needs a connection), then `ddStore()` copies it into the `dd` store. "Clear this week" saves an empty row.
+- `syncDD()` runs at the end of a full `cloudSync` (not on pushOnly): `api.didacticsSince`, incremental by `cst().ddPull`, everything on the daily full pull or Sync now. Rows older than `DD_KEEP_DAYS` (60) are dropped from the phone. It swallows errors so unpublished rules do not break the rest of the sync.
+- `ddHome()` adds the week's topic line to the Home card (Wednesday and Thursday only, as before). The weekly .ics is unchanged (no topics in it).
+- Leaving the space deletes `dd` and `ddPull`.
 
 Screens added: `#/bring`, `#/cup`, `#/buddies`, `#/kudos`, `#/advice`, `#/polls`. Version 1.1.0 (other chat) added the My card tab in the bottom bar, "Your card" box on Home, per-section Edit buttons, section jump chips and a slimmer top bar. 1.1.1 (other chat) tidied the Home banner picture.
 
@@ -83,11 +91,12 @@ python3 ../pt-tools/tools/t2.py         # four phones on a mock cloud
 python3 ../pt-tools/tools/t3.py         # bring from a backup file (1.1.2), wrong files, nothing leaks
 python3 ../pt-tools/tools/t4.py         # built-in department events (1.2.1, GAPP 1.2.3): range, Register, lists, timed .ics
 python3 ../pt-tools/tools/t5.py         # posters and programmes (1.3.0): GAPP poster, upload on the mock cloud, #announcements pins
+python3 ../pt-tools/tools/t6.py         # didactics schedule (1.4.0): admin adds, consultant reads, refused write, clear, Home card
 python3 <isaymotion-app-design>/scripts/check_sw.py .
 python3 <isaymotion-app-design>/scripts/check_design.py . --browser   # then delete _qa/
 ```
 
-Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 10 `ok` lines and `no errors` (update it when the PPA or GAPP entries are removed). `t5` prints 22 `ok` lines and `no errors` (it needs Pillow; update it when the GAPP entry is removed: it expects 3 built-in events pinned). Both checks print PASS. If a test cannot connect, the http.server has stopped: start it again from the main checkout.
+Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for Google Fonts is normal). `t2` prints: consultant sees hobbies False, food False; second year sees hobbies True, food False; same-batch first year sees both True; nobody sees 1995; ends `no errors`. `t3` prints 18 `ok` lines and `no errors`. `t4` prints 10 `ok` lines and `no errors` (update it when the PPA or GAPP entries are removed). `t5` prints 22 `ok` lines and `no errors` (it needs Pillow; update it when the GAPP entry is removed: it expects 3 built-in events pinned). `t6` prints 18 `ok` lines and `no errors` (clock fixed at Wed 18 Nov 2026, so it does not age). Both checks print PASS. If a test cannot connect, the http.server has stopped: start it again from the main checkout.
 
 ## 6. Status
 
@@ -109,9 +118,14 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 | 1.2.3 GAPP webinar | Done 12 Nov 2026, pushed (`504d43e`): id `gapp-2026-webinar`, "Drug Prevention and Control: A Time for All to Come Together to Champion for Health" (GAPP with PPA and Otsuka), Fri 27 Nov 2026 19:00, Zoom, free, Register https://bit.ly/GAPP2026Webinar. t4 now checks it (Register link, Tomorrow on 26 Nov, .ics `DTSTART:20261127T190000`) and accepts "Ginaganap ngayon" |
 | 1.3.0 Event posters and programmes | Done 12 Nov 2026, pushed (`4a70c05`): GAPP poster (`img/events/gapp-2026-webinar.jpg`, 168 KB) and programme; member poster upload; #announcements first and pinning built-in events. Rules file copied to `isaymotion/tickler` (`4a29420`). She reports the rules are published (12 Nov 2026); the live upload is not yet confirmed. 20 new Tagalog drafts (`pt.ev.poster*`, `pt.ev.program`, `pt.ev.moderator`, `pt.ev.uploading`, `pt.ann.*`) by a Sonnet subagent, for her review. She chose this over a separate forum |
 | 1.3.1 Clearer batch year | Done 12 Nov 2026, pushed (`f987ed5`): `pt.pos.batchPh` is now "Year started residency" (Tagalog set by her in 1.3.2, `b64b700`: "Taon na nagsimula ng residency"), the admin hint gives the example 2027, and the box in Cloud sync › Admin is wider. Batch year = the year someone entered residency (hers is 2027) |
+| 1.4.0 Didactics schedule | Done 12 Nov 2026, pushed (`34f21f8`): schedule of the next 8 Thursdays on Department events, admins edit, Home card shows the topic; t6 and mock methods added on dev-tools. Also fixed a sideways scroll on Department events for synced phones (the hidden poster file input). New `didactics` rule: **not yet published in Firebase, not yet copied to `isaymotion/tickler`**. 20 new `pt.dd.*` Tagalog drafts by a Sonnet subagent, for her review |
 | "Who is on duty today" | Not built; needs DutySched to publish duties to `programs/` |
 
 ## 7. Next steps
+
+0. **Rules for 1.4.0:** she pastes the new `firestore.rules` into Firebase and publishes it (the schedule cannot be saved until then). Copy the same file into `isaymotion/tickler` so the two repos stay identical: in the 12 Nov chat, attaching `isaymotion/tickler` with push access was refused by the session's permission check, so either she approves it in a new chat or uploads the file there herself. Then she adds a real week as admin and confirms a non-admin sees it.
+
+   **Agreed improvement list (12 Nov 2026), one release each, in this order unless she or the pilot group reorders:** (a) Didactics schedule: done, 1.4.0. (b) Consultant quick facts: clinic days, subspecialty or interests, preferred way to be reached. (c) Department links page: admin-edited list of forms, templates, manual, Zoom links; no patient information. (d) Roster for rotating roles (case conference, journal club, grand rounds) with a "you're up next week" Home card; could reuse the `didactics` pattern. (e) "Seen by" count on #announcements. (f) Welcome checklist for new members. (g) Birthdays this month on Home, check what Batch Tickler's birthday banner already does. (h) Name-and-face quiz for consultants. (i) Notifications (largest; web push, iPhone only when installed). (j) "Who is on duty today" (needs DutySched, step 7). She was advised to finish the two-account test (step 2) before the department rollout.
 
 1. She brings her own card: Batch Tickler ☰ › Backup › Export, then Psych Tickler ☰ › Bring my card › Choose a Batch Tickler backup file. If anything fails on iPhone/iPad (file picker, Files app), fix it first.
 2. She confirms a poster upload works on the live space (rules published 12 Nov). Then the two-account test (one resident, one consultant) on the live space, including attaching a poster to an event and seeing it on the other account; fix any `permission-denied`.
@@ -142,6 +156,9 @@ Passing: `t1` ends with no `PAGEERR` and no `RAW-KEYS` (a 403 console line for G
 
 - `AFTER.events` has a local variable named `cst` (the calendar status line), which hides the `cst()` cloud-state function there; use `evCode()` for the join code inside it.
 - A poster is a separate cloud document on purpose: events are copied into every phone's localStorage, and pictures there would fill the 5 MB quota.
+- `.sr-only` inputs are `position:absolute`; inside a flex row they can sit past the right edge and cause sideways scroll. Give the parent `position:relative` and the input `left:0` (done for `.ev-poster` in 1.4.0). The no-sideways-scroll checks in t5 run without Cloud sync, so test synced pages too (t6 does).
+- Tests that depend on the weekday use `pg.clock.install(time=...)` and a context `timezone_id='Asia/Manila'`.
+- A phone syncs at most every 5 minutes; in a test, delete `lastSync` from `pt:v1:cloud` before reloading to make it pull again (`resync()` in t6).
 
 ## 9. Files to re-attach
 
