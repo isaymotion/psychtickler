@@ -3,7 +3,10 @@
    This file is PUBLIC (GitHub Pages): put nothing here that must stay inside the department.
    Fields: id (stable, never reuse), title, date (YYYY-MM-DD, first day), end (optional last day),
    time (optional HH:MM), place, note, url (optional https link, shown as "Register"),
-   lists (optional [{title, names: [..]}], shown as tap-to-open lists under the event).
+   lists (optional [{title, names: [..]}], shown as tap-to-open lists under the event),
+   poster (optional, 1.3.0: a picture in img/events/, about 1000 px wide and under 250 KB; tap to enlarge;
+   add the file to CORE in sw.js so it works offline), moderator and program (optional
+   [{time, title, by}], shown as a tap-to-open Programme). Upcoming entries are also pinned in #announcements.
    Remove an entry once it is long past. */
 (function () {
   var annual = ['Dr. Bargas', 'Dr. Capili', 'Dr. Preclaro', 'Dr. Lagrimas', 'Dr. Teves', 'Dr. Triunfante', 'Dr. Jimenez', 'Dr. David', 'Dr. Ocampo', 'Dr. Suson'];
@@ -23,7 +26,18 @@
       note: 'Free webinar by the Group for Addiction Psychiatry of the Philippines (GAPP), with the Philippine Psychiatric Association (PPA) and Otsuka. ' +
         'Speakers cover the clinical management of substance use disorders, the neurobiology of addiction, the psychological aspects of treatment, and treatment pathways and levels of care. ' +
         'Open to members and fellow healthcare professionals. Register for free with the link.',
-      url: 'https://bit.ly/GAPP2026Webinar'
+      url: 'https://bit.ly/GAPP2026Webinar',
+      poster: 'img/events/gapp-2026-webinar.jpg',
+      moderator: 'Dr. Renee Celeste Obra-Puno',
+      program: [
+        { time: '7:00 PM', title: 'Opening ceremony', by: 'Prayer and National Anthem. Opening remarks: Dr. Paulo Woodruff A. Gonzales (President, GAPP)' },
+        { time: '7:10 PM', title: 'Understanding the case: clinical course and management', by: 'Dr. Joyce Ann N. Maglaque' },
+        { time: '7:30 PM', title: 'Understanding the brain: neurobiology of drug addiction', by: 'Dr. Edgardo Juan L. Tolentino, Jr.' },
+        { time: '7:50 PM', title: 'Understanding the person: countertransference in therapy', by: 'Dr. Benita Sta. Ana-Ponio' },
+        { time: '8:10 PM', title: 'Understanding the system: treatment pathways and levels of care', by: 'Dr. Beatriz Inumpa-Gundran' },
+        { time: '8:30 PM', title: 'Open forum', by: '' },
+        { time: '8:50 PM', title: 'Closing ceremony', by: 'Message from the PPA President: Dr. Anna Liza S. Mañalac. Awarding of certificates. Closing remarks: Ms. Michelle Fernando (Marketing Manager, Otsuka)' }
+      ]
     },
     {
       id: 'ppa-2027-reg-deadline',

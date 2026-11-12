@@ -212,6 +212,18 @@ service cloud.firestore {
         allow delete: if pIsAdmin(p);
       }
 
+      // Event posters (Psych Tickler 1.3.0): one picture per event, a data URL capped like a chat photo. Members only.
+      match /posters/{id} {
+        allow read: if pIsMember(p);
+        allow create, update: if pIsMember(p)
+          && request.resource.data.by == request.auth.uid
+          && request.resource.data.keys().hasOnly(['by', 'updated', 'data', 'w', 'h'])
+          && request.resource.data.updated is number
+          && request.resource.data.data is string && request.resource.data.data.size() < 420000
+          && request.resource.data.data.matches('^data:image/(jpeg|png|webp|gif);base64,.*');
+        allow delete: if pIsAdmin(p) || (signedIn() && resource.data.by == request.auth.uid);
+      }
+
       // Chat. Every channel has an audience (aud); a member only reads, lists, opens and writes in channels they can see.
       match /channels/{ch} {
         function chAud() { return get(/databases/$(database)/documents/programs/$(p)/channels/$(ch)).data.aud; }

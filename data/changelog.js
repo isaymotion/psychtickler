@@ -4,6 +4,14 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.3.0', date: '2026-11-12', title: 'Event posters and programmes',
+    items: [
+      { type: 'feature', text: 'Department events can show a poster: tap the picture to see it full size. The GAPP webinar (27 November) now has its poster and the full programme with times and speakers.', href: '#/events' },
+      { type: 'feature', text: 'Adding an event of your own? You can attach a poster. It is shrunk on your phone and shared with the department through Cloud sync. No patient details.', href: '#/events' },
+      { type: 'update', text: 'Chat: #announcements is now first in the list and pins the upcoming department events, with their posters and programmes.', href: '#/chat/announcements' }
+    ]
+  },
+  {
     version: '1.2.3', date: '2026-11-12', title: 'GAPP webinar on Department events',
     items: [
       { type: 'content', text: 'Department events now shows the free GAPP webinar "Drug Prevention and Control: A Time for All to Come Together to Champion for Health" (with the PPA and Otsuka), Friday 27 November 2026, 7:00 PM on Zoom, with a Register link.', href: '#/events' }

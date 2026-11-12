@@ -124,10 +124,14 @@
         return F.getDocs(q).then(function (s) { return rows(s).map(function (x) { return { id: x._id, owner: x.owner, updated: x.updated || 0, shared: x.shared || {}, card: x.card }; }); });
       },
       putEvent: function (code, ev) {
-        var x = { title: ev.title || '', date: ev.date || '', time: ev.time || '', place: ev.place || '', note: ev.note || '', updated: Date.parse(ev.updated) || Date.now(), by: me().uid };
+        var x = { title: ev.title || '', date: ev.date || '', time: ev.time || '', place: ev.place || '', note: ev.note || '', poster: +ev.poster || 0, updated: Date.parse(ev.updated) || Date.now(), by: me().uid };
         if (ev.deleted) x.deleted = true;
         return F.setDoc(d(ROOT, code, 'events', ev.id), x);
       },
+      // 1.3.0 event posters: one small picture per event, kept apart from the event so the event list stays light
+      putPoster: function (code, id, im) { return F.setDoc(d(ROOT, code, 'posters', id), { by: me().uid, updated: Date.now(), data: im.data, w: +im.w || 0, h: +im.h || 0 }); },
+      getPoster: function (code, id) { return F.getDoc(d(ROOT, code, 'posters', id)).then(function (s) { return s.exists() ? s.data() : null; }); },
+      deletePoster: function (code, id) { return F.deleteDoc(d(ROOT, code, 'posters', id)); },   // rule: whoever uploaded it, or an admin
       eventsSince: function (code, since) {
         return F.getDocs(F.query(col(ROOT, code, 'events'), F.where('updated', '>', since))).then(function (s) { return rows(s).map(function (x) { x.id = x._id; delete x._id; return x; }); });
       },

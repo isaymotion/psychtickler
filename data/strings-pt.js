@@ -204,7 +204,28 @@
     'pt.dd.cal': 'Add every Thursday to my calendar',
     'pt.dd.note': 'Weekly Didactics day for the MMWGH Psychiatry department.',
     'pt.ev.register': 'Register',
-    'pt.ev.now': 'Happening now'
+    'pt.ev.now': 'Happening now',
+    /* 1.3.0 event posters and programmes */
+    'pt.ev.poster': "Poster",
+    'pt.ev.posterAlt': "Poster: {title}",
+    'pt.ev.posterOpen': "Open the poster for {title}",
+    'pt.ev.program': "Programme",
+    'pt.ev.moderator': "Moderator: {name}",
+    'pt.ev.posterAdd': "Add a poster",
+    'pt.ev.posterChange': "Change poster",
+    'pt.ev.posterRemove': "Remove poster",
+    'pt.ev.posterHint': "Optional. A picture of the event poster, shrunk to about 300 KB. Everyone in the department space can see it. No patient details.",
+    'pt.ev.posterNeedSync': "Posters are shared through Cloud sync. Join the department space to add one.",
+    'pt.ev.posterReady': "Poster ready ({kb} KB). It uploads when you save.",
+    'pt.ev.posterBad': "That picture could not be used. Try another one.",
+    'pt.ev.posterFail': "The event was saved, but the poster could not be uploaded ({err}). Edit the event to try again.",
+    'pt.ev.posterRemoved': "The poster will be removed when you save.",
+    'pt.ev.posterLoading': "Loading poster…",
+    'pt.ev.posterNone': "The poster could not be loaded. Check your connection.",
+    'pt.ev.uploading': "Uploading the poster…",
+    'pt.ann.pins': "Department events",
+    'pt.ann.open': "Open Department events",
+    'pt.ann.pinned': "Pinned"
   };
   var tl = {
     'nav.bring': 'Dalhin ang card ko mula sa Batch Tickler',
@@ -407,7 +428,28 @@
     'pt.dd.cal': 'Idagdag ang bawat Huwebes sa calendar ko',
     'pt.dd.note': 'Lingguhang Didactics day ng MMWGH Psychiatry department.',
     'pt.ev.register': 'Mag-register',
-    'pt.ev.now': 'Ginaganap ngayon'
+    'pt.ev.now': 'Ginaganap ngayon',
+    /* 1.3.0 event posters and programmes (Tagalog drafts — Dr. Navarro reviews) */
+    'pt.ev.poster': "Poster",
+    'pt.ev.posterAlt': "Poster: {title}",
+    'pt.ev.posterOpen': "Buksan ang poster para sa {title}",
+    'pt.ev.program': "Programa",
+    'pt.ev.moderator': "Moderator: {name}",
+    'pt.ev.posterAdd': "Magdagdag ng poster",
+    'pt.ev.posterChange': "Palitan ang poster",
+    'pt.ev.posterRemove': "Alisin ang poster",
+    'pt.ev.posterHint': "Opsyonal. Larawan ng poster ng event, paliliitin sa mga 300 KB. Makikita ito ng lahat sa department space. Walang detalye ng pasyente.",
+    'pt.ev.posterNeedSync': "Ibinabahagi ang mga poster sa pamamagitan ng Cloud sync. Sumali sa department space para makapagdagdag.",
+    'pt.ev.posterReady': "Handa na ang poster ({kb} KB). Ma-a-upload ito kapag nag-save ka.",
+    'pt.ev.posterBad': "Hindi magamit ang larawang iyon. Subukan ang iba.",
+    'pt.ev.posterFail': "Na-save ang event, pero hindi na-upload ang poster ({err}). I-edit ang event para subukan ulit.",
+    'pt.ev.posterRemoved': "Aalisin ang poster kapag nag-save ka.",
+    'pt.ev.posterLoading': "Nilo-load ang poster…",
+    'pt.ev.posterNone': "Hindi ma-load ang poster. Suriin ang koneksyon mo.",
+    'pt.ev.uploading': "Ina-upload ang poster…",
+    'pt.ann.pins': "Department events",
+    'pt.ann.open': "Buksan ang Department events",
+    'pt.ann.pinned': "Naka-pin"
   };
   var S = window.STRINGS = window.STRINGS || { en: {}, tl: {} };
   Object.keys(en).forEach(function (k) { S.en[k] = en[k]; });

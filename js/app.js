@@ -1926,7 +1926,7 @@
     var d = cleanText(e.date, 10), tm = cleanText(e.time, 5);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return null;
     var title = cleanText(e.title, 80); if (!title) return null;
-    return { id: cleanText(e.id, 40) || newId(), title: title, date: d, time: /^\d{2}:\d{2}$/.test(tm) ? tm : '', place: cleanText(e.place, 120), note: cleanText(e.note, 300), updated: cleanText(e.updated, 30) || new Date().toISOString() };
+    return { id: cleanText(e.id, 40) || newId(), title: title, date: d, time: /^\d{2}:\d{2}$/.test(tm) ? tm : '', place: cleanText(e.place, 120), note: cleanText(e.note, 300), poster: +e.poster > 0 ? +e.poster : 0, updated: cleanText(e.updated, 30) || new Date().toISOString() };
   }
   function storedEvents() { var a = store.get('events', []); return (Array.isArray(a) ? a : []).map(cleanEvent).filter(Boolean).map(function (e) { if (/^monito-/.test(e.id) && e.title === 'Monito-monita exchange') e.title = t('bt.mm.evTitle'); return e; }); }
   function getEvents() {
@@ -1939,7 +1939,9 @@
     var iso = /^\d{4}-\d{2}-\d{2}$/;
     return (Array.isArray(window.DEPT_EVENTS) ? window.DEPT_EVENTS : []).filter(function (e) { return e && e.id && e.title && iso.test(e.date); }).map(function (e) {
       return { id: String(e.id), title: String(e.title), date: e.date, end: iso.test(e.end || '') && e.end > e.date ? e.end : '', time: /^\d{2}:\d{2}$/.test(e.time || '') ? e.time : '', place: String(e.place || ''), note: String(e.note || ''),
-        url: /^https:\/\//.test(e.url || '') ? e.url : '', lists: (Array.isArray(e.lists) ? e.lists : []).filter(function (l) { return l && l.title && Array.isArray(l.names) && l.names.length; }), builtin: true, dept: true };
+        url: /^https:\/\//.test(e.url || '') ? e.url : '', lists: (Array.isArray(e.lists) ? e.lists : []).filter(function (l) { return l && l.title && Array.isArray(l.names) && l.names.length; }),
+        poster: /^img\/events\/[\w.-]+\.(jpe?g|png|webp)$/.test(e.poster || '') ? e.poster : '', moderator: String(e.moderator || ''),
+        program: (Array.isArray(e.program) ? e.program : []).filter(function (p) { return p && p.title; }).map(function (p) { return { time: String(p.time || ''), title: String(p.title), by: String(p.by || '') }; }), builtin: true, dept: true };
     });
   }
   function evLeft(e, today) { return e.end ? evDays({ date: e.end }, today) : evDays(e, today); }   // days until the LAST day
@@ -1991,13 +1993,13 @@
       '<label class="field"><span class="field__l">' + esc(t('bt.ev.title')) + '</span><input name="title" maxlength="80" required value="' + esc(e.title) + '" placeholder="' + esc(t('bt.ev.titlePh')) + '"></label>' +
       '<div class="ev-form__row"><label class="field"><span class="field__l">' + esc(t('bt.ev.date')) + '</span><input type="date" name="date" required value="' + esc(e.date) + '"></label><label class="field"><span class="field__l">' + esc(t('bt.ev.time')) + '</span><input type="time" name="time" value="' + esc(e.time) + '"></label></div>' +
       '<label class="field"><span class="field__l">' + esc(t('bt.ev.place')) + '</span><input name="place" maxlength="120" value="' + esc(e.place) + '"></label>' +
-      '<label class="field"><span class="field__l">' + esc(t('bt.ev.note')) + '</span><textarea name="note" rows="2" maxlength="300">' + esc(e.note) + '</textarea></label>' +
+      '<label class="field"><span class="field__l">' + esc(t('bt.ev.note')) + '</span><textarea name="note" rows="2" maxlength="300">' + esc(e.note) + '</textarea></label>' + evPosterField(e) +
       '<p class="guess__acts"><button type="submit" class="btn btn--solid">' + esc(t('bt.ev.save')) + '</button>' + (evEdit ? '<button type="button" class="btn" id="ev-cancel">' + esc(t('bt.ev.cancel')) + '</button>' : '') + '</p><p class="form__status" id="ev-status" role="status"></p></form>';
   }
   VIEWS.events = function () {
     var today = new Date(), all = getEvents(), up = all.filter(function (e) { return evLeft(e, today) >= 0; }), past = all.filter(function (e) { return evLeft(e, today) < 0; }).reverse();
     function row(e) {
-      return '<li class="ev"><div class="ev__when"><span class="ev__d">' + esc(evWhen(e, today)) + '</span></div><div class="ev__body"><strong>' + esc(e.title) + '</strong><span class="muted">' + esc(evDate(e)) + (e.place ? ' · ' + esc(e.place) : '') + '</span>' + (e.note ? '<span class="ev__note">' + esc(e.note) + '</span>' : '') +
+      return '<li class="ev"><div class="ev__when"><span class="ev__d">' + esc(evWhen(e, today)) + '</span></div><div class="ev__body"><strong>' + esc(e.title) + '</strong><span class="muted">' + esc(evDate(e)) + (e.place ? ' · ' + esc(e.place) : '') + '</span>' + (e.note ? '<span class="ev__note">' + esc(e.note) + '</span>' : '') + evPosterHTML(e) + evProgHTML(e) +
         (e.lists || []).map(function (l) { return '<details class="ev__list"><summary>' + esc(l.title) + ' <span class="muted">(' + l.names.length + ')</span></summary><ol>' + l.names.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ol></details>'; }).join('') +
         '<span class="ev__acts">' + (e.url ? '<a class="link-btn" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(t('pt.ev.register')) + '</a>' : '') + '<button type="button" class="link-btn" data-evcal="' + esc(e.id) + '">' + esc(t('bt.cal.one')) + '</button>' + (e.builtin ? '' : '<button type="button" class="link-btn" data-evedit="' + esc(e.id) + '">' + esc(t('bt.ev.editBtn')) + '</button><button type="button" class="link-btn" data-evdel="' + esc(e.id) + '">' + esc(t('bt.custom.remove')) + '</button>') + '</span></div></li>';
     }
@@ -2012,14 +2014,30 @@
     var f = document.getElementById('ev-form'), st = document.getElementById('ev-status'), cst = document.getElementById('ev-cal-status');
     f.addEventListener('submit', function (e) {
       e.preventDefault();
-      var ev = cleanEvent({ id: evEdit || newId(), title: f.title.value, date: f.date.value, time: f.time.value, place: f.place.value, note: f.note.value, updated: new Date().toISOString() });
+      var old = evEdit ? storedEvents().filter(function (x) { return x.id === evEdit; })[0] : null;
+      var ev = cleanEvent({ id: evEdit || newId(), title: f.title.value, date: f.date.value, time: f.time.value, place: f.place.value, note: f.note.value, poster: old && !evPosterRm ? old.poster : 0, updated: new Date().toISOString() });
       if (!ev) { st.textContent = t('bt.ev.need'); st.classList.add('is-error'); return; }
-      var list = storedEvents().filter(function (x) { return x.id !== ev.id; }); list.push(ev); store.set('events', list); evEdit = ''; award('planner');
-      route({ keepScroll: true }); var s2 = document.getElementById('ev-status'); if (s2) s2.textContent = t('bt.ev.saved');
+      var im = evPoster, rm = evPosterRm && old && old.poster, code = evCode();   // (cst is a local name in this function)
+      function finish(msg, bad) {
+        var list = storedEvents().filter(function (x) { return x.id !== ev.id; }); list.push(ev); store.set('events', list); evEdit = ''; evPoster = null; evPosterRm = false; award('planner');
+        if (isSynced()) schedulePush();
+        route({ keepScroll: true }); var s2 = document.getElementById('ev-status'); if (s2) { s2.textContent = msg; s2.classList.toggle('is-error', !!bad); }
+      }
+      if (im && isSynced()) {   // 1.3.0: the poster goes up first, so an event never points at a poster that is not there
+        var sb = f.querySelector('[type=submit]'); sb.disabled = true; st.classList.remove('is-error'); st.textContent = t('pt.ev.uploading');
+        cloud().then(function (api) { return api.putPoster ? api.putPoster(code, ev.id, im) : Promise.reject(new Error('poster')); })
+          .then(function () { ev.poster = Date.now(); posterCache[ev.id] = { stamp: ev.poster, data: im.data }; finish(t('bt.ev.saved')); },
+            function (e2) { finish(tf('pt.ev.posterFail', { err: errText(e2) }), true); });
+        return;
+      }
+      if (rm && isSynced()) cloud().then(function (api) { return api.deletePoster && api.deletePoster(code, ev.id); }).catch(function () {});
+      finish(t('bt.ev.saved'));
     });
-    var cancel = document.getElementById('ev-cancel'); if (cancel) cancel.addEventListener('click', function () { evEdit = ''; route({ keepScroll: true }); });
-    main.querySelectorAll('[data-evedit]').forEach(function (b) { b.addEventListener('click', function () { evEdit = b.getAttribute('data-evedit'); route({ keepScroll: true }); var t1 = document.querySelector('#ev-form [name=title]'); if (t1) { t1.focus(); t1.scrollIntoView({ block: 'center' }); } }); });
-    main.querySelectorAll('[data-evdel]').forEach(function (b) { b.addEventListener('click', function () { var id = b.getAttribute('data-evdel'), e = storedEvents().filter(function (x) { return x.id === id; })[0]; if (!e || !window.confirm(tf('bt.ev.confirmDel', { title: e.title }))) return; store.set('events', storedEvents().filter(function (x) { return x.id !== id; })); cloudEvDel(e); route({ keepScroll: true }); }); });
+    bindPosterField();
+    loadPosters();
+    var cancel = document.getElementById('ev-cancel'); if (cancel) cancel.addEventListener('click', function () { evEdit = ''; evPoster = null; evPosterRm = false; route({ keepScroll: true }); });
+    main.querySelectorAll('[data-evedit]').forEach(function (b) { b.addEventListener('click', function () { evEdit = b.getAttribute('data-evedit'); evPoster = null; evPosterRm = false; route({ keepScroll: true }); var t1 = document.querySelector('#ev-form [name=title]'); if (t1) { t1.focus(); t1.scrollIntoView({ block: 'center' }); } }); });
+    main.querySelectorAll('[data-evdel]').forEach(function (b) { b.addEventListener('click', function () { var id = b.getAttribute('data-evdel'), e = storedEvents().filter(function (x) { return x.id === id; })[0]; if (!e || !window.confirm(tf('bt.ev.confirmDel', { title: e.title }))) return; store.set('events', storedEvents().filter(function (x) { return x.id !== id; })); cloudEvDel(e); if (e.poster && isSynced()) cloud().then(function (api) { return api.deletePoster && api.deletePoster(evCode(), id); }).catch(function () {}); delete posterCache[id]; route({ keepScroll: true }); }); });
     main.querySelectorAll('[data-evcal]').forEach(function (b) { b.addEventListener('click', function () { var e = getEvents().filter(function (x) { return x.id === b.getAttribute('data-evcal'); })[0]; if (e) icsEventsOut([e], 'event-' + slug(e.title) + '.ics', function (m) { cst.textContent = m; }); }); });
     var all = document.getElementById('ev-all'); if (all) all.addEventListener('click', function () { var today = new Date(); icsEventsOut(getEvents().filter(function (e) { return evLeft(e, today) >= 0; }), 'batch-events.ics', function (m) { cst.textContent = m; }); });
   };
@@ -2923,7 +2941,7 @@
         list.forEach(function (e) {
           if (e.updated > maxU) maxU = e.updated;
           var iso = new Date(e.updated).toISOString();
-          if (e.deleted) gone[e.id] = iso; else add.push({ id: e.id, title: e.title, date: e.date, time: e.time, place: e.place, note: e.note, updated: iso });
+          if (e.deleted) gone[e.id] = iso; else add.push({ id: e.id, title: e.title, date: e.date, time: e.time, place: e.place, note: e.note, poster: e.poster || 0, updated: iso });
         });
         if (add.length) n += mergeEvents(add);
         if (Object.keys(gone).length) { var before = storedEvents(), after = before.filter(function (e) { return !(gone[e.id] && e.updated <= gone[e.id]); }); n += before.length - after.length; store.set('events', after); }
@@ -2948,7 +2966,7 @@
       if (!api.user()) throw { code: 'signed-out' };
       var first = !opts.pushOnly && (!c.role || opts.force || c.lastFull !== dayNum(new Date())) ? pullRoles(api, c.code) : Promise.resolve();
       return first.then(function () { return pushMe(api, cst()); }).then(function () {
-        if (opts.pushOnly) return (c.evDel || []).length ? syncEvents(api, cst()).then(function () { return null; }) : null;
+        if (opts.pushOnly) return (c.evDel || []).length || storedEvents().some(function (e) { return e.updated > (c.evPush || ''); }) ? syncEvents(api, cst()).then(function () { return null; }) : null;
         var full = cst().lastFull !== dayNum(new Date()) || !getMe();   // a device without My card looks at every card, so it can find its own
         var info = full || opts.force ? api.getBatch(c.code).then(function (b) { if (b) cset(function (x) { x.name = b.name || x.name; x.tmdbKey = okTmdbKey(b.tmdbKey); }); }).catch(function () {}) : Promise.resolve();
         return info.then(function () { return pullCards(api, cst(), full); })
@@ -3440,7 +3458,7 @@
   };
   function chName(c) { return '#' + (c ? c.name : ''); }
   function chById(id) { var l = cachedChannels(); for (var i = 0; i < l.length; i++) if (l[i].id === id) return l[i]; return null; }
-  function chSort(a, b) { return (a.order || 0) - (b.order || 0) || (a.created || 0) - (b.created || 0) || String(a.name).localeCompare(String(b.name)); }
+  function chSort(a, b) { return (b.id === 'announcements') - (a.id === 'announcements') || (a.order || 0) - (b.order || 0) || (a.created || 0) - (b.created || 0) || String(a.name).localeCompare(String(b.name)); }
   function slugCh(name) { return String(name || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24); }
   function cleanChName(v) { return String(v || '').replace(/^#+/, '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 30); }
 
@@ -3628,7 +3646,7 @@
     else html += '<ul class="ch-list">' + list.map(function (c) {
       var un = isUnread(c);
       return '<li><a class="ch-row' + (un ? ' is-unread' : '') + '" href="#/chat/' + encodeURIComponent(c.id) + '"><span class="ch-row__e" aria-hidden="true">' + esc(c.emoji || '#') + '</span>' +
-        '<span class="ch-row__t"><strong>' + esc(chName(c)) + audTag(c.aud) + '</strong><span>' + esc(c.last ? tf('bt.chat.lastBy', { name: c.lastName || '—', when: whenShort(c.last) }) : t('bt.chat.empty')) + '</span></span>' +
+        '<span class="ch-row__t"><strong>' + esc(chName(c)) + audTag(c.aud) + (c.id === 'announcements' ? ' <span class="badge">' + esc(t('pt.ann.pinned')) + '</span>' : '') + '</strong><span>' + esc(c.last ? tf('bt.chat.lastBy', { name: c.lastName || '—', when: whenShort(c.last) }) : t('bt.chat.empty')) + '</span></span>' +
         (un ? '<span class="ch-dot"><span class="sr-only">' + esc(t('bt.chat.unread')) + '</span></span>' : '') + '</a></li>';
     }).join('') + '</ul>';
     if (chatListErr && list.length) html += '<p class="is-error">' + esc(chatListErr) + '</p>';
@@ -3657,7 +3675,7 @@
     if (!isSynced()) return html + notMember() + '</div>';
     var mayEdit = ch && u && (u.admin || ch.by === u.uid);
     html += '<header class="chat-room__head"><h1><span aria-hidden="true">' + esc(ch ? ch.emoji || '#' : '#') + '</span> ' + esc(ch ? chName(ch) : '#' + id) + (ch ? audTag(ch.aud) : '') + '</h1>' +
-      (mayEdit ? '<span class="form__acts"><button type="button" class="btn btn--sm" id="ch-rename">' + esc(t('bt.chat.rename')) + '</button><button type="button" class="link-btn" id="ch-del">' + esc(t('bt.chat.deleteCh')) + '</button></span>' : '') + '</header>' + chatRule() +
+      (mayEdit ? '<span class="form__acts"><button type="button" class="btn btn--sm" id="ch-rename">' + esc(t('bt.chat.rename')) + '</button><button type="button" class="link-btn" id="ch-del">' + esc(t('bt.chat.deleteCh')) + '</button></span>' : '') + '</header>' + chatRule() + (id === 'announcements' ? annPinsHTML() : '') +
       '<div class="chat-log"><p class="chat-older"><button type="button" class="btn btn--sm" id="chat-older" hidden>' + esc(t('bt.chat.older')) + '</button></p>' +
       '<ul class="chat-list" id="chat-list" aria-live="polite" aria-relevant="additions"><li class="muted chat-wait">' + esc(t('bt.chat.loading')) + '</li></ul></div>' +
       '<button type="button" class="btn btn--sm chat-newpill" id="chat-newpill" hidden>' + esc(t('bt.chat.newMsgs')) + ' ↓</button>' +
@@ -4658,6 +4676,91 @@
       return html.indexOf('<div class="home__stats">') >= 0 ? html.replace('<div class="home__stats">', strip + '<div class="home__stats">') : html.replace(/(<\/header>)/, '$1' + strip);
     };
   })();
+
+
+  /* ===================== PSYCH TICKLER 1.3.0: EVENT POSTERS AND PROGRAMMES =====================
+     Built-in events (data/dept-events.js) may carry `poster` (a file under img/events/), `program` and `moderator`.
+     Events members add may carry a poster too: the picture lives in the cloud only (programs/{code}/posters/{eventId},
+     shrunk like a chat photo), the event keeps a number (`poster`, the upload time) and each phone fetches the picture
+     when Department events is opened. #announcements is listed first in Chat and pins the built-in events. */
+  var posterCache = {}, evPoster = null, evPosterRm = false;
+  function evCode() { return cst().code || ''; }
+  function posterBtn(src, title) {
+    return '<button type="button" class="ev__poster" aria-label="' + esc(tf('pt.ev.posterOpen', { title: title })) + '"><img src="' + esc(src) + '" loading="lazy" alt="' + esc(tf('pt.ev.posterAlt', { title: title })) + '"></button>';
+  }
+  function evPosterHTML(e) {
+    if (e.dept) return e.poster ? posterBtn(e.poster, e.title) : '';
+    if (!e.poster || e.builtin) return '';
+    var c = posterCache[e.id];
+    if (c && c.stamp === e.poster) return posterBtn(c.data, e.title);
+    return '<span class="muted ev__pwait" data-evposter="' + esc(e.id) + '">' + esc(t(isSynced() ? 'pt.ev.posterLoading' : 'pt.ev.posterNone')) + '</span>';
+  }
+  function evProgHTML(e) {
+    if (!e.program || !e.program.length) return '';
+    return '<details class="ev__list ev__prog"><summary>' + esc(t('pt.ev.program')) + ' <span class="muted">(' + e.program.length + ')</span></summary>' +
+      (e.moderator ? '<p class="muted ev__mod">' + esc(tf('pt.ev.moderator', { name: e.moderator })) + '</p>' : '') +
+      '<ul class="plain">' + e.program.map(function (p) { return '<li><span class="ev__pt">' + esc(p.time) + '</span><span class="ev__pb"><b>' + esc(p.title) + '</b>' + (p.by ? '<span class="muted">' + esc(p.by) + '</span>' : '') + '</span></li>'; }).join('') + '</ul></details>';
+  }
+  function loadPosters() {   // fetch the posters of the events on screen, once per poster per visit to the app
+    var els = main.querySelectorAll('[data-evposter]'); if (!els.length || !isSynced()) return;
+    var code = cst().code;
+    cloud().then(function (api) {
+      Array.prototype.forEach.call(els, function (el) {
+        var id = el.getAttribute('data-evposter'), e = storedEvents().filter(function (x) { return x.id === id; })[0];
+        function none() { el.textContent = t('pt.ev.posterNone'); }
+        if (!e || !api.getPoster) { none(); return; }
+        api.getPoster(code, id).then(function (p) {
+          if (!p || !okChatImg(p)) { none(); return; }
+          posterCache[id] = { stamp: e.poster, data: p.data };
+          if (el.parentNode) el.outerHTML = posterBtn(p.data, e.title);
+        }).catch(none);
+      });
+    }).catch(function () {});
+  }
+  function posterZoom(src, alt, from) {
+    var z = document.createElement('div'); z.className = 'chat-zoom chat-zoom--poster'; z.setAttribute('role', 'dialog'); z.setAttribute('aria-modal', 'true'); z.setAttribute('aria-label', alt || t('pt.ev.poster'));
+    z.innerHTML = '<button type="button" class="icon-btn chat-zoom__x" aria-label="' + esc(t('bt.chat.close')) + '">' + icon('x') + '</button><img src="' + esc(src) + '" alt="' + esc(alt || '') + '">';
+    function close() { document.removeEventListener('keydown', key); if (z.parentNode) z.parentNode.removeChild(z); if (from && from.focus) from.focus(); }
+    function key(e) { if (e.key === 'Escape') close(); }
+    z.addEventListener('click', close); document.addEventListener('keydown', key);
+    window.addEventListener('hashchange', close, { once: true });
+    document.body.appendChild(z); z.querySelector('button').focus();
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('.ev__poster') : null; if (!b) return;
+    var im = b.querySelector('img'); if (im) posterZoom(im.getAttribute('src'), im.getAttribute('alt'), b);
+  });
+  function evPosterField(e) {
+    var h = '<div class="field ev-poster" id="ev-poster"><span class="field__l">' + esc(t('pt.ev.poster')) + '</span><span class="field__h">' + esc(t('pt.ev.posterHint')) + '</span>';
+    if (!isSynced()) return h + '<p class="muted">' + esc(t('pt.ev.posterNeedSync')) + '</p></div>';
+    var has = !!(evPoster || (e && e.poster && !evPosterRm));
+    return h + (evPoster ? '<img class="ev-poster__prev" src="' + esc(evPoster.data) + '" alt="">' : '') +
+      '<p class="form__acts"><input type="file" id="ev-poster-file" class="sr-only" accept="image/*"><label class="btn" for="ev-poster-file">' + esc(t(has ? 'pt.ev.posterChange' : 'pt.ev.posterAdd')) + '</label>' +
+      (has ? '<button type="button" class="link-btn" id="ev-poster-rm">' + esc(t('pt.ev.posterRemove')) + '</button>' : '') + '</p>' +
+      '<p class="form__status" id="ev-poster-st" role="status">' + esc(evPoster ? tf('pt.ev.posterReady', { kb: Math.round(evPoster.data.length * 0.75 / 1024) }) : evPosterRm ? t('pt.ev.posterRemoved') : '') + '</p></div>';
+  }
+  function bindPosterField() {   // only this field is redrawn when a picture is chosen, so what was typed in the form stays
+    var box = document.getElementById('ev-poster'), fi = document.getElementById('ev-poster-file'), rm = document.getElementById('ev-poster-rm'); if (!box) return;
+    function redraw() { var cur = evEdit ? storedEvents().filter(function (x) { return x.id === evEdit; })[0] : null; box.outerHTML = evPosterField(cur); bindPosterField(); }
+    if (fi) fi.addEventListener('change', function () {
+      var file = fi.files && fi.files[0], st = document.getElementById('ev-poster-st'); fi.value = ''; if (!file) return;
+      st.classList.remove('is-error'); st.textContent = t('bt.chat.shrinking');
+      chatPhoto(file, function (im) {
+        if (!im) { st.textContent = t('pt.ev.posterBad'); st.classList.add('is-error'); return; }
+        evPoster = im; evPosterRm = false; redraw();
+      });
+    });
+    if (rm) rm.addEventListener('click', function () { if (evPoster) evPoster = null; else evPosterRm = true; redraw(); });
+  }
+  function annPinsHTML() {
+    var today = new Date(), up = deptEvents().filter(function (e) { return evLeft(e, today) >= 0; }).sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); }).slice(0, 4);
+    if (!up.length) return '';
+    return '<details class="card chat-pins" id="chat-pins"><summary><span aria-hidden="true">📌</span> ' + esc(t('pt.ann.pins')) + ' <span class="muted">(' + up.length + ')</span></summary><div class="chat-pins__body"><ul class="plain ev-list">' +
+      up.map(function (e) {
+        return '<li class="ev"><div class="ev__body"><strong>' + esc(e.title) + '</strong><span class="muted">' + esc(evWhen(e, today)) + ' · ' + esc(evDate(e)) + (e.place ? ' · ' + esc(e.place) : '') + '</span>' + evPosterHTML(e) + evProgHTML(e) +
+          (e.url ? '<span class="ev__acts"><a class="link-btn" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(t('pt.ev.register')) + '</a></span>' : '') + '</div></li>';
+      }).join('') + '</ul><p><a class="link-btn" href="#/events">' + esc(t('pt.ann.open')) + '</a></p></div></details>';
+  }
 
   /* ===================== PSYCH TICKLER 1.2.0: DIDACTICS DAY (EVERY THURSDAY) =====================
      A built-in weekly reminder, worked out on the phone (no cloud data): a Home card on Thursdays (and a heads-up
