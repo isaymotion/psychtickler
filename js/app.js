@@ -5250,29 +5250,33 @@
     if (un) un.hidden = !has;
   }
   function bkExport() {
+    /* 1.5.1 (Batch Tickler 1.24.1): Android refuses to share .json files, so the share sheet is used only on installed iPhone/iPad apps
+       (which cannot download). Everywhere else, and whenever sharing fails for any reason except the person closing
+       the sheet, the file is downloaded. "Last exported" is recorded only when a file really left the app. */
     var now = new Date();
-    store.set('lastBackup', now.toISOString());
     var data = bkCollect();
     var payload = { app: BK_APP, format: 1, exported: now.toISOString(), attribution: ATTRIBUTION, summary: bkSummary(data), data: data };
     var name = BK_APP + '-backup-' + now.getFullYear() + '-' + pad2(now.getMonth() + 1) + '-' + pad2(now.getDate()) + '.json';
     var json = JSON.stringify(payload, null, 1);
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    function done(key, arg) { store.set('lastBackup', now.toISOString()); bkStatus(arg ? tf(key, arg) : t(key)); bkPaint(); }
+    function download() {
+      var url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      var a = document.createElement('a');
+      a.href = url; a.download = name; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      done('backup.saved', { name: name });
+    }
     var file = null;
     try { file = new File([json], name, { type: 'application/json' }); } catch (e) {}
-    if (standalone && file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      // Installed apps on phones cannot always download files; the share sheet can save to Files or send it on.
-      navigator.share({ files: [file], title: tf('backup.shareTitle', { app: APP_NAME }) }).then(function () {
-        bkStatus(t('backup.shared')); bkPaint();
-      }).catch(function () { bkStatus(t('backup.exportCancelled')); });
+    if (standalone && ios && file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: tf('backup.shareTitle', { app: APP_NAME }) }).then(function () { done('backup.shared'); },
+        function (e) { if (e && e.name === 'AbortError') bkStatus(t('backup.exportCancelled')); else download(); });
       return;
     }
-    var url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-    var a = document.createElement('a');
-    a.href = url; a.download = name; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    bkStatus(tf('backup.saved', { name: name }));
-    bkPaint();
+    download();
   }
   function bkImport(file) {
     if (!file) return;
