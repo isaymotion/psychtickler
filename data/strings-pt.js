@@ -13,6 +13,7 @@
     /* card groups and fields */
     'bt.g.quick': 'Quick card',
     'bt.g.consultant': 'For consultants',
+    'bt.stats.residents': 'members',   // 1.5.2: the count includes consultants and alumni, so not "residents"
     'pt.quick.note': 'Fifteen short answers. Fill in these and you are done; everything below is optional.',
     'pt.cons.note': 'Shown to the whole department, so residents know when and how to reach you.',
     'bt.f.cSpecialty': 'Subspecialty or special interest',
@@ -273,6 +274,7 @@
     /* card groups and fields */
     'bt.g.quick': 'Quick card',
     'bt.g.consultant': 'Para sa mga consultant',
+    'bt.stats.residents': 'miyembro',
     'pt.quick.note': 'Labinlimang maiikling sagot. Punan ang mga ito at tapos ka na; opsyonal ang lahat ng nasa ibaba.',
     'pt.cons.note': 'Makikita ng buong department, para alam ng mga resident kung kailan at paano ka maaabot.',
     'bt.f.cSpecialty': 'Subspecialty o special interest',

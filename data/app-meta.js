@@ -3,7 +3,7 @@ window.APP_META = {
   name: 'Psych Tickler',
   short: 'Psych',
   tagline: 'Get to know the department',
-  version: '1.5.1',
+  version: '1.5.2',
   repo: 'psychtickler',
   attribution: 'App created by Isabella Navarro, MD. Latest version November 2026. isaymotion@gmail.com'
 };

@@ -4,6 +4,12 @@
    then bump APP_META.version, VERSION in sw.js, and "Latest version" in the footer / README. */
 window.APP_CHANGELOG = [
   {
+    version: '1.5.2', date: '2026-11-13', title: 'Department stats counts members',
+    items: [
+      { type: 'correction', text: 'Department stats: the first tile counted consultants but was labelled "residents". It now reads "members".', href: '#/stats' }
+    ]
+  },
+  {
     version: '1.5.1', date: '2026-11-13', title: 'Export backup works on Android',
     items: [
       { type: 'correction', text: 'Export backup on Android phones said "Export cancelled" and saved nothing. It now saves the backup file to the phone\'s Downloads folder.' },
